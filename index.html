@@ -1,1 +1,114 @@
-<h1>GitHub Pages <b>skripkeren</b> sudah aktif 🎉</h1><p>Silakan berkreasi dan ganti file ini</p>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panduan Menjalankan Script t-rm.sh</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 1.5rem;
+    }
+    h1, h2 {
+      color: #222;
+    }
+    .step {
+      margin-bottom: 2rem;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: monospace;
+    }
+    button.copy {
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 0.3rem 0.6rem;
+      margin-top: 0.3rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.copy:hover {
+      background: #0056b3;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 2rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Panduan Menjalankan Script <code>t-rm.sh</code></h1>
+    <p>Repo: <a href="https://silverhawk.web.id/skripkeren" target="_blank">skripkeren</a></p>
+  </header>
+  <main>
+    <section class="step">
+      <h2>1️⃣ Install Git Bash</h2>
+      <p>Download & install <b>Git Bash</b> untuk Windows dari situs resmi:</p>
+      <p><a href="https://git-scm.com/downloads" target="_blank">👉 Download Git Bash</a></p>
+    </section>
+
+    <section class="step">
+      <h2>2️⃣ Install GitHub CLI</h2>
+      <p>Download & install <b>GitHub CLI (gh)</b>:</p>
+      <p><a href="https://cli.github.com/" target="_blank">👉 Download GitHub CLI</a></p>
+      <p>Setelah terinstall, login dengan perintah:</p>
+      <pre><code>gh auth login</code></pre>
+    </section>
+
+    <section class="step">
+      <h2>3️⃣ Jalankan Script</h2>
+      <p>Jalankan perintah berikut di Git Bash (script akan otomatis diunduh dan dieksekusi):</p>
+      <pre><code id="cmd">bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</code></pre>
+      <button class="copy" onclick="copyText('cmd')">📋 Copy</button>
+    </section>
+
+    <section class="step">
+      <h2>ℹ️ Tentang Script</h2>
+      <p><code>t-rm.sh</code> adalah menu interaktif untuk:</p>
+      <ul>
+        <li>Upload folder ke GitHub repo</li>
+        <li>Lihat isi file & folder repo online</li>
+        <li>Membuat / mengaktifkan GitHub Pages</li>
+      </ul>
+      <p>Semua dijalankan langsung dari terminal Git Bash tanpa perlu clone repo manual.</p>
+    </section>
+  </main>
+  <footer>
+    &copy; 2025 SkripKeren | Dibuat untuk teman-teman developer 🚀
+  </footer>
+
+  <script>
+    function copyText(id) {
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Perintah berhasil dicopy!");
+      });
+    }
+  </script>
+</body>
+</html>
