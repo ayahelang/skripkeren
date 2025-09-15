@@ -35,28 +35,28 @@ function pilih_akun() {
         return
     fi
 
-    echo -e "${YELLOW}🔄 Mengaktifkan akun: $username ...${NC}"
+    echo "🔄 Mengaktifkan akun: $username ..."
     gh auth switch -u "$username"
 
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ Akun aktif sekarang: $username (github.com)${NC}"
-        echo -e "${CYAN}Verifikasi:${NC}"
+        echo "✅ Akun aktif sekarang: $username (github.com)"
+        echo "Verifikasi:"
         gh auth status --hostname github.com
     else
-        echo -e "${RED}❌ Gagal mengaktifkan akun.${NC}"
+        echo "❌ Gagal mengaktifkan akun."
     fi
 }
 
 function login_github() {
-    echo -e "${YELLOW}🔑 Login akun GitHub...${NC}"
+    echo "🔑 Login akun GitHub..."
     gh auth login
 }
 
 function upload_folder() {
-    echo -e "${CYAN}📂 Folder yang ada di direktori ini:${NC}"
+    echo "📂 Folder yang ada di direktori ini:"
     folders=($(ls -d */ 2>/dev/null))
     if [ ${#folders[@]} -eq 0 ]; then
-        echo -e "${RED}❌ Tidak ada folder terdeteksi.${NC}"
+        echo "❌ Tidak ada folder terdeteksi."
         return
     fi
 
@@ -67,16 +67,16 @@ function upload_folder() {
     read -p "Pilih nomor folder: " folder_idx
     folder=${folders[$((folder_idx-1))]}
     if [ -z "$folder" ]; then
-        echo -e "${RED}❌ Nomor folder tidak valid.${NC}"
+        echo "❌ Nomor folder tidak valid."
         return
     fi
 
     cd "$folder" || return
 
-    echo -e "${YELLOW}📡 Ambil daftar repo dari GitHub...${NC}"
+    echo "📡 Ambil daftar repo dari GitHub..."
     repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
     if [ ${#repos[@]} -eq 0 ]; then
-        echo -e "${RED}❌ Tidak ada repo terdeteksi.${NC}"
+        echo "❌ Tidak ada repo terdeteksi."
         cd ..
         return
     fi
@@ -88,12 +88,12 @@ function upload_folder() {
     read -p "Pilih nomor repo tujuan upload: " repo_idx
     repo=${repos[$((repo_idx-1))]}
     if [ -z "$repo" ]; then
-        echo -e "${RED}❌ Nomor repo tidak valid.${NC}"
+        echo "❌ Nomor repo tidak valid."
         cd ..
         return
     fi
 
-    echo -e "${YELLOW}🚀 Upload folder '$folder' ke repo '$repo'...${NC}"
+    echo "🚀 Upload folder '$folder' ke repo '$repo'..."
 
     git init
     git add .
@@ -103,7 +103,6 @@ function upload_folder() {
     git remote add origin "https://github.com/$(gh api user --jq .login)/$repo.git"
     git push -u origin main --force
 
-    echo -e "${GREEN}✅ Upload selesai.${NC}"
     cd ..
 }
 
@@ -116,11 +115,10 @@ function list_repo_files() {
     read -p "Pilih nomor repo: " repo_idx
     repo=${repos[$((repo_idx-1))]}
     if [ -z "$repo" ]; then
-        echo -e "${RED}❌ Nomor repo tidak valid.${NC}"
+        echo "❌ Nomor repo tidak valid."
         return
     fi
 
-    echo -e "${CYAN}ℹ️ Info repo:${NC}"
     gh repo view "$repo" --json name,url,createdAt,updatedAt --jq \
         '"Nama: \(.name)\nURL: \(.url)\nDibuat: \(.createdAt)\nUpdate: \(.updatedAt)"'
     echo
@@ -136,16 +134,16 @@ function activate_pages() {
     read -p "Pilih nomor repo: " repo_idx
     repo=${repos[$((repo_idx-1))]}
     if [ -z "$repo" ]; then
-        echo -e "${RED}❌ Nomor repo tidak valid.${NC}"
+        echo "❌ Nomor repo tidak valid."
         return
     fi
 
     gh api -X POST repos/$(gh api user --jq .login)/$repo/pages \
         -f "source[branch]=main" -f "source[path]=/" >/dev/null
 
-    echo -e "${YELLOW}⚡ GitHub Pages diaktifkan. Tunggu ±1-2 menit...${NC}"
+    echo "⚡ GitHub Pages diaktifkan. Tunggu ±1-2 menit..."
     url="https://$(gh api user --jq .login).github.io/$repo/"
-    echo -e "${GREEN}🌐 Akses di: $url${NC}"
+    echo "🌐 Akses di: $url"
     read -p "Buka di browser? (y/n): " ans
     if [ "$ans" = "y" ]; then
         if command -v xdg-open >/dev/null; then
@@ -157,24 +155,24 @@ function activate_pages() {
 }
 
 while true; do
-    clear
-    echo -e \"${BLUE}=== $APP_NAME ===${NC}\"
-    echo -e \"${CYAN}Menu:${NC}\"
-    echo \"1. Pilih akun aktif\"
-    echo \"2. Login akun GitHub\"
-    echo \"3. Upload folder ke repo\"
-    echo \"4. Tampilkan isi repo\"
-    echo \"5. Aktifkan GitHub Pages\"
-    echo \"0. Keluar\"
-    read -p \"Pilih menu: \" choice
+    echo
+    echo "=== $APP_NAME ==="
+    echo "Menu:"
+    echo "1. Pilih akun aktif"
+    echo "2. Login akun GitHub"
+    echo "3. Upload folder ke repo"
+    echo "4. Tampilkan isi repo"
+    echo "5. Aktifkan GitHub Pages"
+    echo "0. Keluar"
+    read -p "Pilih menu: " choice
 
     case $choice in
-        1) pilih_akun ; read -p $'\\n[Enter untuk kembali ke menu]';;
-        2) login_github ; read -p $'\\n[Enter untuk kembali ke menu]';;
-        3) upload_folder ; read -p $'\\n[Enter untuk kembali ke menu]';;
-        4) list_repo_files ; read -p $'\\n[Enter untuk kembali ke menu]';;
-        5) activate_pages ; read -p $'\\n[Enter untuk kembali ke menu]';;
+        1) pilih_akun ;;
+        2) login_github ;;
+        3) upload_folder ;;
+        4) list_repo_files ;;
+        5) activate_pages ;;
         0) break ;;
-        *) echo -e \"${RED}❌ Pilihan tidak valid.${NC}\" ; sleep 1 ;;
+        *) echo "Pilihan tidak valid." ;;
     esac
 done
