@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panduan Menjalankan <code>t-rm3.sh</code></title>
+  <style>
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;margin:0;padding:24px;background:#f7fafc;color:#0f172a}
+    .wrap{max-width:900px;margin:0 auto;background:#fff;padding:28px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,.08)}
+    h1{font-size:1.6rem;margin-bottom:8px}
+    p.small{color:#475569}
+    pre{background:#0f172a;color:#f8fafc;padding:12px;border-radius:8px;overflow:auto}
+    code{background:#eef2ff;padding:2px 6px;border-radius:6px}
+    ul{margin-left:1rem}
+    .note{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin:12px 0;border-radius:6px}
+    table{border-collapse:collapse;width:100%;margin:8px 0}
+    td,th{border:1px solid #e6eef8;padding:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Panduan Menjalankan <code>t-rm3.sh</code></h1>
+    <p class="small">Repo: <strong>ayahelang/skripkeren</strong> — file: <code>t-rm3.sh</code></p>
+
+    <section>
+      <h2>Deskripsi singkat</h2>
+      <p>Skrip <code>t-rm3.sh</code> adalah aplikasi terminal sederhana bernama <strong>Repo Manager by Ted</strong> yang memudahkan Anda mengelola akun GitHub, mengunggah folder ke repository, melihat isi repository, dan mengaktifkan GitHub Pages langsung dari command line.</p>
+    </section>
+
+    <section>
+      <h2>Fitur utama</h2>
+      <ul>
+        <li><strong>Pilih akun aktif</strong> — beralih antar akun GitHub yang sudah login menggunakan <code>gh</code> (GitHub CLI).</li>
+        <li><strong>Login akun GitHub</strong> — memulai proses login akun baru melalui GitHub CLI.</li>
+        <li><strong>Upload folder ke repo</strong> — pilih folder lokal lalu unggah isinya ke repository GitHub yang tersedia.</li>
+        <li><strong>Tampilkan isi repo</strong> — melihat informasi repository beserta daftar file yang ada di dalamnya.</li>
+        <li><strong>Aktifkan GitHub Pages</strong> — mengaktifkan GitHub Pages pada repository tertentu dan menampilkan URL aksesnya.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Persiapan di laptop/PC</h2>
+      <p>Sebelum menjalankan skrip ini, pastikan perangkat Anda sudah memiliki:</p>
+      <ul>
+        <li><strong>Git</strong> — untuk manajemen versi.</li>
+        <li><strong>GitHub CLI (gh)</strong> — alat resmi GitHub untuk login, mengelola repo, dan GitHub Pages.</li>
+        <li><strong>bash</strong> — shell yang digunakan untuk mengeksekusi skrip.</li>
+        <li><strong>curl</strong> atau <strong>wget</strong> — untuk mengambil skrip langsung dari GitHub.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Cara menjalankan skrip</h2>
+      <p>Buka terminal lalu jalankan perintah berikut:</p>
+      <pre>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm3.sh)</pre>
+      <p>atau</p>
+      <pre>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm3.sh)</pre>
+    </section>
+
+    <section>
+      <h2>Menu dalam aplikasi</h2>
+      <p>Saat dijalankan, aplikasi akan menampilkan menu interaktif:</p>
+      <pre>
+=== Repo Manager by Ted ===
+Menu:
+1. Pilih akun aktif
+2. Login akun GitHub
+3. Upload folder ke repo
+4. Tampilkan isi repo
+5. Aktifkan GitHub Pages
+0. Keluar
+      </pre>
+      <p>Pilih nomor menu sesuai kebutuhan Anda.</p>
+    </section>
+
+    <footer style="margin-top:18px;color:#475569">Dokumentasi ini menjelaskan cara menggunakan <code>t-rm3.sh</code> dari repo <code>ayahelang/skripkeren</code>.</footer>
+  </div>
+</body>
+</html>
