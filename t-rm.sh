@@ -327,6 +327,137 @@ manage_scopes() {
   read -p "Tekan [Enter] untuk kembali ke menu..."
 }
 
+# --- Kelola Kolaborator Repo ---
+function manage_collaborators() {
+    active_user=$(gh api user --jq .login 2>/dev/null)
+    echo -e "${CYAN}=== Daftar repo GitHub (akun: $active_user) ===${NC}"
+    repos=$(gh repo list --limit 50 --json name --jq '.[].name')
+    echo "$repos" | nl
+
+    read -p "👉 Nomor repo untuk kelola kolaborator: " repo_number
+    repo_name=$(echo "$repos" | sed -n "${repo_number}p")
+    if [ -z "$repo_name" ]; then
+        echo -e "${RED}❌ Nomor repo tidak valid.${NC}"
+        pause
+        return
+    fi
+
+    while true; do
+        clear
+        echo -e "${BLUE}=== Kelola Kolaborator Repo: $repo_name ===${NC}"
+        echo "1) Lihat daftar kolaborator"
+        echo "2) Tambah kolaborator"
+        echo "3) Hapus kolaborator"
+        echo "4) Lihat undangan tertunda (invitations)"
+        echo "0) Kembali"
+        echo
+        read -p "👉 Pilih menu: " sub_choice
+
+        case $sub_choice in
+            1)
+                echo -e "${CYAN}📜 Daftar kolaborator untuk repo $repo_name:${NC}"
+                gh api repos/$active_user/$repo_name/collaborators --jq '.[].login' 2>/dev/null || \
+                  echo -e "${YELLOW}⚠️ Belum ada kolaborator atau tidak punya akses melihatnya.${NC}"
+                pause
+                ;;
+            2)
+                read -p "👤 Masukkan username GitHub kolaborator: " collab_user
+                echo "Pilih permission: 1) pull (read)  2) push (write)  3) admin"
+                read -p "👉 Nomor permission: " perm_choice
+                case $perm_choice in
+                    1) perm="pull" ;;
+                    2) perm="push" ;;
+                    3) perm="admin" ;;
+                    *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ; continue ;;
+                esac
+
+                TOKEN=$(gh auth token 2>/dev/null)
+                if [[ -z "$TOKEN" ]]; then
+                    echo -e "${RED}⚠️ Token tidak ditemukan. Login dulu (menu Login).${NC}"
+                    pause
+                    continue
+                fi
+
+                payload="{\"permission\":\"$perm\"}"
+                resp_file=$(mktemp)
+                http_code=$(curl -s -o "$resp_file" -w "%{http_code}" -X PUT \
+                  -H "Authorization: token $TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  -d "$payload" \
+                  "https://api.github.com/repos/$active_user/$repo_name/collaborators/$collab_user")
+
+                if [[ "$http_code" == "201" ]]; then
+                    echo -e "${GREEN}✅ Undangan dikirim ke $collab_user (201). Mereka harus menerima undangan untuk menjadi kolaborator.${NC}"
+                    echo "📌 Cek undangan tertunda dengan menu -> Lihat undangan tertunda, atau periksa: gh api repos/$active_user/$repo_name/invitations"
+                elif [[ "$http_code" == "204" ]]; then
+                    echo -e "${GREEN}✅ $collab_user sudah menjadi kolaborator (204).${NC}"
+                else
+                    echo -e "${RED}❌ Gagal menambahkan kolaborator. HTTP $http_code${NC}"
+                    echo "Respons server:"
+                    cat "$resp_file"
+                fi
+                rm -f "$resp_file"
+                pause
+                ;;           
+            3)
+                echo -e "${CYAN}📜 Daftar kolaborator untuk repo $repo_name:${NC}"
+                collabs=$(gh api repos/$active_user/$repo_name/collaborators --jq '.[].login' 2>/dev/null)
+
+                if [[ -z "$collabs" ]]; then
+                    echo -e "${YELLOW}⚠️ Tidak ada kolaborator.${NC}"
+                    pause
+                    continue
+                fi
+
+                            echo "$collabs" | nl
+                echo
+                read -p "👉 Masukkan nomor kolaborator yang ingin dihapus (bisa lebih dari satu, pisahkan spasi): " nums
+
+                TOKEN=$(gh auth token 2>/dev/null)
+                if [[ -z "$TOKEN" ]]; then
+                    echo -e "${RED}⚠️ Token tidak ditemukan. Login dulu (menu Login).${NC}"
+                    pause
+                    continue
+                fi
+
+                for n in $nums; do
+                    collab_user=$(echo "$collabs" | sed -n "${n}p")
+                    if [[ -z "$collab_user" ]]; then
+                        echo -e "${RED}❌ Nomor $n tidak valid.${NC}"
+                        continue
+                    fi
+
+                    resp_file=$(mktemp)
+                    http_code=$(curl -s -o "$resp_file" -w "%{http_code}" -X DELETE \
+                    -H "Authorization: token $TOKEN" \
+                    -H "Accept: application/vnd.github+json" \
+                    "https://api.github.com/repos/$active_user/$repo_name/collaborators/$collab_user")
+
+                    if [[ "$http_code" == "204" ]]; then
+                        echo -e "${GREEN}✅ Kolaborator $collab_user berhasil dihapus.${NC}"
+                    elif [[ "$http_code" == "404" ]]; then
+                        echo -e "${YELLOW}⚠️ $collab_user tidak ditemukan atau Anda tidak punya izin.${NC}"
+                    else
+                        echo -e "${RED}❌ Gagal menghapus $collab_user (HTTP $http_code).${NC}"
+                        cat "$resp_file"
+                    fi
+                    rm -f "$resp_file"
+                done
+                pause
+                ;;
+            4)
+                echo -e "${CYAN}📨 Undangan tertunda untuk repo $repo_name:${NC}"
+                gh api repos/$active_user/$repo_name/invitations --jq '.[] | "\(.id)\t\(.invitee.login)\t\(.permissions)"' 2>/dev/null || \
+                  echo -e "${YELLOW}⚠️ Tidak ada undangan tertunda atau tidak punya akses melihatnya.${NC}"
+                echo
+                echo "📌 Catatan: undangan harus diterima oleh invitee sebelum mereka tampil di daftar kolaborator."
+                pause
+                ;;
+            0) break ;;
+            *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
+        esac
+    done
+}
 
 # === Main Menu ===
 while true; do
@@ -334,16 +465,17 @@ while true; do
     echo -e "${BLUE}=== $APP_NAME ===${NC}"
     echo
     echo "Menu:"
-    echo "1. Pilih akun aktif"
-    echo "2. Login akun GitHub"
-    echo "3. Upload folder ke repo"
-    echo "4. Tampilkan isi repo"
-    echo "5. Aktifkan GitHub Pages"
-    echo "6. Ubah nama repo"
-    echo "7. Ubah deskripsi repo"
-    echo "8. Hapus repo"
-    echo "9. Lihat & aktifkan token scopes"
-    echo "0. Keluar"
+    echo " 1. Pilih akun aktif"
+    echo " 2. Login akun GitHub"
+    echo " 3. Upload folder ke repo"
+    echo " 4. Tampilkan isi repo"
+    echo " 5. Aktifkan GitHub Pages"
+    echo " 6. Ubah nama repo"
+    echo " 7. Ubah deskripsi repo"
+    echo " 8. Hapus repo"
+    echo " 9. Lihat & aktifkan token scopes"
+    echo "10. Atur Collaborator"
+    echo " 0. Keluar"
     echo
     read -p "Pilih menu: " choice
     
@@ -357,6 +489,7 @@ while true; do
         7) edit_description ;;
         8) delete_repo ;;
         9) manage_scopes ;;
+        10) manage_collaborators ;;
         0) break ;;
         *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
     esac
