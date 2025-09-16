@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_NAME="Repo Manager by Ted"
+APP_NAME="Repo Manager v5 by Ted"
 
 # Warna ANSI
 RED='\033[0;31m'
@@ -17,7 +17,7 @@ pause() {
 
 function list_accounts() {
     echo
-    echo -e "${CYAN}=== Daftar akun GitHub login ===${NC}"
+    echo -e "${CYAN}=== Daftar akun GitHub terdeteksi login ===${NC}"
     gh auth status --show-token 2>/dev/null | grep "Logged in to" | nl
     pause
 }
@@ -31,7 +31,7 @@ function pilih_akun() {
         return
     fi
     
-    echo -e "${CYAN}=== Daftar akun GitHub login ===${NC}"
+    echo -e "${CYAN}=== Daftar akun GitHub terdeteksi login ===${NC}"
     for i in "${!accounts[@]}"; do
         echo "$((i+1))) ${accounts[$i]} (github.com)"
     done
