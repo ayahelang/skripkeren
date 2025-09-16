@@ -3,90 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Repo Manager v5 by Ted - Panduan</title>
+  <title>Panduan Repo Manager v5 by Ted</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      margin: 20px;
-      background: #f9f9f9;
-      color: #333;
+    :root {
+      --bg: #f9fafb;
+      --fg: #111827;
+      --accent: #2563eb;
+      --accent-light: #dbeafe;
+      --code-bg: #1e293b;
+      --code-fg: #f8fafc;
+      --note-bg: #ecfdf5;
+      --note-border: #10b981;
     }
-    h1, h2 {
-      color: #2c3e50;
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      margin: 0;
+      color: var(--accent);
+    }
+    header p {
+      color: #4b5563;
+      margin-top: 6px;
+    }
+    h2 {
+      font-size: 1.4rem;
+      margin-top: 28px;
+      color: var(--accent);
+    }
+    ul, ol {
+      padding-left: 20px;
     }
     pre {
-      background: #272822;
-      color: #f8f8f2;
-      padding: 10px;
-      border-radius: 5px;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 14px;
+      border-radius: 10px;
       overflow-x: auto;
+      font-size: 0.9rem;
     }
     code {
-      background: #ecf0f1;
-      padding: 2px 4px;
-      border-radius: 3px;
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
     }
     .note {
-      background: #eafaf1;
-      border-left: 4px solid #27ae60;
-      padding: 10px;
-      margin: 15px 0;
+      background: var(--note-bg);
+      border-left: 5px solid var(--note-border);
+      padding: 12px;
+      border-radius: 6px;
+      margin: 18px 0;
+    }
+    footer {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.4rem; }
+      h2 { font-size: 1.2rem; }
+      pre { font-size: 0.8rem; }
     }
   </style>
 </head>
 <body>
-  <h1>Repo Manager v5 by Ted</h1>
-  <p>
-    <b>Repo Manager v5</b> adalah script bash untuk mempermudah manajemen akun dan repository GitHub melalui terminal.
-    Dengan tool ini, kamu bisa login, mengganti akun aktif, mengupload folder, mengaktifkan GitHub Pages, hingga mengedit dan menghapus repository secara interaktif.
-  </p>
+  <div class="container">
+    <header>
+      <h1>Repo Manager v5 by Ted</h1>
+      <p>Skrip Bash untuk manajemen akun & repository GitHub via terminal</p>
+    </header>
 
-  <h2>1. Persiapan Instalasi</h2>
-  <p>Pastikan laptop/PC sudah memiliki:</p>
-  <ul>
-    <li><b>Git</b> → <a href="https://git-scm.com/downloads" target="_blank">Download Git</a></li>
-    <li><b>GitHub CLI (gh)</b> → <a href="https://cli.github.com/" target="_blank">Download GitHub CLI</a></li>
-    <li><b>Bash Shell</b> → sudah tersedia di Linux & macOS. Untuk Windows, bisa menggunakan:
+    <section>
+      <h2>1. Persiapan</h2>
+      <p>Install aplikasi berikut di laptop/PC Anda:</p>
       <ul>
-        <li><a href="https://gitforwindows.org/" target="_blank">Git Bash (disarankan)</a></li>
-        <li>Atau WSL (Windows Subsystem for Linux)</li>
+        <li><a href="https://git-scm.com/downloads" target="_blank">Git</a></li>
+        <li><a href="https://cli.github.com/" target="_blank">GitHub CLI (gh)</a></li>
+        <li><a href="https://gitforwindows.org/" target="_blank">Git Bash (Windows)</a> / Linux & macOS sudah ada bash</li>
       </ul>
-    </li>
-  </ul>
+      <div class="note">💡 Pastikan perintah <code>git</code> dan <code>gh</code> bisa dijalankan di terminal.</div>
+    </section>
 
-  <div class="note">
-    💡 Setelah instalasi selesai, pastikan perintah <code>git</code> dan <code>gh</code> bisa dijalankan dari terminal atau Git Bash.
+    <section>
+      <h2>2. Menjalankan Skrip</h2>
+      <p>Buka terminal lalu jalankan salah satu perintah berikut:</p>
+      <pre>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm3.sh)</pre>
+      <p>atau:</p>
+      <pre>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm3.sh)</pre>
+    </section>
+
+    <section>
+      <h2>3. Menu Utama</h2>
+      <p>Saat dijalankan, Anda akan melihat menu interaktif seperti berikut:</p>
+      <pre>
+=== Repo Manager by Ted ===
+Menu:
+1. Pilih akun aktif
+2. Login akun GitHub
+3. Upload folder ke repo
+4. Tampilkan isi repo
+5. Aktifkan GitHub Pages
+6. Ubah nama repo
+7. Ubah deskripsi repo
+8. Hapus repo
+0. Keluar
+      </pre>
+    </section>
+
+    <section>
+      <h2>4. Contoh Penggunaan</h2>
+      <ol>
+        <li>Login GitHub dengan menu <code>2</code>.</li>
+        <li>Pilih akun aktif dengan menu <code>1</code>.</li>
+        <li>Gunakan menu lain sesuai kebutuhan, misalnya upload folder atau aktifkan GitHub Pages.</li>
+      </ol>
+    </section>
+
+    <footer>
+      &copy; 2025 — Dokumentasi <code>t-rm3.sh</code> | Repo: ayahelang/skripkeren
+    </footer>
   </div>
-
-  <h2>2. Cara Menjalankan Script</h2>
-  <p>Buka terminal (Linux/Mac) atau Git Bash (Windows), lalu jalankan perintah berikut:</p>
-
-  <pre><code>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</code></pre>
-  <p>atau jika menggunakan <code>sh</code>:</p>
-  <pre><code>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</code></pre>
-
-  <h2>3. Menu Utama</h2>
-  <p>Setelah script dijalankan, kamu akan melihat menu interaktif:</p>
-  <ul>
-    <li>1 → Pilih akun aktif</li>
-    <li>2 → Login akun GitHub</li>
-    <li>3 → Upload folder ke repo</li>
-    <li>4 → Tampilkan isi repo</li>
-    <li>5 → Aktifkan GitHub Pages</li>
-    <li>6 → Ubah nama repo</li>
-    <li>7 → Ubah deskripsi repo</li>
-    <li>8 → Hapus repo</li>
-    <li>0 → Keluar</li>
-  </ul>
-
-  <h2>4. Contoh Penggunaan</h2>
-  <ol>
-    <li>Login dulu ke GitHub dengan menu nomor 2.</li>
-    <li>Pilih akun aktif (menu nomor 1) jika ada lebih dari satu akun login.</li>
-    <li>Pakai menu lain sesuai kebutuhan (misalnya upload folder atau aktifkan GitHub Pages).</li>
-  </ol>
-
-  <p>Selamat mencoba 🚀</p>
 </body>
 </html>
