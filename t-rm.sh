@@ -145,6 +145,111 @@ function list_repo_files() {
     pause
 }
 
+
+create_new_repo() {
+  clear
+  echo -e "${CYAN}📦 Buat Repository Baru${NC}"
+  echo "--------------------------------------------"
+
+  # Ambil daftar akun yang login (sama seperti di pilih_akun)
+  accounts=($(gh auth status 2>/dev/null | grep "Logged in to github.com account" | sed -E 's/.*account ([^ ]+).*/\1/'))
+
+  # fallback: kalau parsing gagal, gunakan gh api user (single account)
+  if [ ${#accounts[@]} -eq 0 ]; then
+    single=$(gh api user --jq .login 2>/dev/null)
+    if [[ -n "$single" ]]; then
+      accounts=("$single")
+    fi
+  fi
+
+  if [ ${#accounts[@]} -eq 0 ]; then
+    echo -e "${RED}❌ Tidak ada akun yang terdeteksi login. Silakan login dulu (menu Login).${NC}"
+    pause
+    return
+  fi
+
+  echo -e "${CYAN}=== Akun yang terdeteksi ===${NC}"
+  for i in "${!accounts[@]}"; do
+    echo "$((i+1))) ${accounts[$i]}"
+  done
+
+  read -p "👉 Pilih nomor akun (untuk pemilik repo baru): " acc_sel
+  account=${accounts[$((acc_sel-1))]}
+
+  if [[ -z "$account" ]]; then
+    echo -e "${RED}❌ Pilihan akun tidak valid.${NC}"
+    pause
+    return
+  fi
+
+  # Aktifkan akun terpilih supaya gh command pakai akun itu
+  gh auth switch -u "$account" 2>/dev/null
+
+  echo
+  echo -e "${CYAN}📂 Daftar repository di akun $account:${NC}"
+  repos=($(gh repo list "$account" --limit 200 --json name --jq '.[].name' 2>/dev/null))
+  if [ ${#repos[@]} -eq 0 ]; then
+    echo -e "${YELLOW}⚠️ Tidak ada repo terdeteksi atau repositori tidak dapat diambil.${NC}"
+  else
+    for i in "${!repos[@]}"; do
+      echo "$((i+1)). ${repos[$i]}"
+    done
+  fi
+
+  echo
+  while true; do
+    read -p "👉 Masukkan nama repository baru (ketik 'q' untuk batal): " new_repo
+    if [[ "$new_repo" == "q" ]]; then
+      echo "Batal."
+      pause
+      return
+    fi
+    if [[ -z "$new_repo" ]]; then
+      echo -e "${RED}❌ Nama repo tidak boleh kosong.${NC}"
+      continue
+    fi
+
+    # cek duplikat nama (persis)
+    duplicate=0
+    for r in "${repos[@]}"; do
+      if [[ "$r" == "$new_repo" ]]; then
+        duplicate=1
+        break
+      fi
+    done
+
+    if [ $duplicate -eq 1 ]; then
+      echo -e "${YELLOW}⚠️ Nama repo '$new_repo' sudah ada di akun $account. Pilih nama lain.${NC}"
+      continue
+    fi
+
+    break
+  done
+
+  echo
+  echo -e "${YELLOW}⚡ Membuat repo $account/$new_repo ...${NC}"
+  # Buat repo dan clone ke lokal
+  if gh repo create "$account/$new_repo" --public --confirm --clone >/dev/null 2>&1; then
+    # kalau clone sukses, masuk ke folder dan buat README
+    if [ -d "$new_repo" ]; then
+      cd "$new_repo" || return
+      echo "# $new_repo" > README.md
+      git add README.md
+      # commit & push (jangan gagal jika hook terjadi)
+      git commit -m "Initial commit with README.md" >/dev/null 2>&1 || true
+      git push origin HEAD:main >/dev/null 2>&1 || true
+      cd ..
+      echo -e "${GREEN}✅ Repo $account/$new_repo berhasil dibuat dan README.md ditambahkan.${NC}"
+    else
+      echo -e "${YELLOW}⚠️ Repo dibuat di GitHub, tetapi folder clone tidak ditemukan di lokal. Silakan cek repo di GitHub.${NC}"
+    fi
+  else
+    echo -e "${RED}❌ Gagal membuat repository. Periksa permission/token atau nama repo sudah valid.${NC}"
+  fi
+
+  pause
+}
+
 function activate_pages() {
     repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
     for i in "${!repos[@]}"; do
@@ -467,14 +572,15 @@ while true; do
     echo "Menu:"
     echo " 1. Pilih akun aktif"
     echo " 2. Login akun GitHub"
-    echo " 3. Upload folder ke repo"
-    echo " 4. Tampilkan isi repo"
-    echo " 5. Aktifkan GitHub Pages"
-    echo " 6. Ubah nama repo"
-    echo " 7. Ubah deskripsi repo"
-    echo " 8. Hapus repo"
-    echo " 9. Lihat & aktifkan token scopes"
-    echo "10. Atur Collaborator"
+    echo " 3. Buat repo baru"
+    echo " 4. Upload folder ke repo"
+    echo " 5. Tampilkan isi repo"
+    echo " 6. Aktifkan GitHub Pages"
+    echo " 7. Ubah nama repo"
+    echo " 8. Ubah deskripsi repo"
+    echo " 9. Hapus repo"
+    echo "10. Lihat & aktifkan token scopes"
+    echo "11. Atur Collaborator"
     echo " 0. Keluar"
     echo
     read -p "Pilih menu: " choice
@@ -482,14 +588,15 @@ while true; do
     case $choice in
         1) pilih_akun ;;
         2) login_github ;;
-        3) upload_folder ;;
-        4) list_repo_files ;;
-        5) activate_pages ;;
-        6) rename_repo ;;
-        7) edit_description ;;
+        3) create_new_repo ;;
+        4) upload_folder ;;
+        5) list_repo_files ;;
+        6) activate_pages ;;
+        7) rename_repo ;;
+        8) edit_description ;;
         8) delete_repo ;;
-        9) manage_scopes ;;
-        10) manage_collaborators ;;
+        10) manage_scopes ;;
+        11) manage_collaborators ;;
         0) break ;;
         *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
     esac
