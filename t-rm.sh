@@ -15,13 +15,6 @@ pause() {
     read -p "Tekan [Enter] untuk kembali ke menu..."
 }
 
-function list_accounts() {
-    echo
-    echo -e "${CYAN}=== Daftar akun GitHub terdeteksi login ===${NC}"
-    gh auth status --show-token 2>/dev/null | grep "Logged in to" | nl
-    pause
-}
-
 function pilih_akun() {
     echo
     accounts=($(gh auth status 2>/dev/null | grep "Logged in to github.com account" | sed -E 's/.*account ([^ ]+).*/\1/'))
@@ -50,7 +43,6 @@ function pilih_akun() {
     
     if [ $? -eq 0 ]; then
         echo -e "✅ Akun aktif sekarang: ${GREEN}$username ${NC}"
-        echo "Verifikasi:"
         gh auth status --hostname github.com
     else
         echo -e "${RED}❌ Gagal mengaktifkan akun.${NC}"
@@ -61,7 +53,7 @@ function pilih_akun() {
 function login_github() {
     echo
     echo -e "${YELLOW}🔑 Login akun GitHub...${NC}"
-    gh auth login
+    gh auth login -w --scopes "repo,workflow,gist,read:org"
     pause
 }
 
@@ -92,7 +84,8 @@ function upload_folder() {
     cd "$folder" || return
     
     echo
-    echo -e "📡 Daftar repo dari GitHub ${GREEN}$username${NC}"
+    active_user=$(gh api user --jq .login)
+    echo -e "📡 Daftar repo dari GitHub ${GREEN}$active_user${NC}"
     repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
     if [ ${#repos[@]} -eq 0 ]; then
         echo -e "${RED}❌ Tidak ada repo terdeteksi.${NC}"
@@ -130,7 +123,8 @@ function upload_folder() {
 }
 
 function list_repo_files() {
-    echo -e "🔄 Repo yang ada di akun ${YELLOW}$username${NC} :"
+    active_user=$(gh api user --jq .login)
+    echo -e "🔄 Repo yang ada di akun ${YELLOW}$active_user${NC} :"
     repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
     for i in "${!repos[@]}"; do
         echo "$((i+1)). ${repos[$i]}"
@@ -181,7 +175,6 @@ function activate_pages() {
     fi
     pause
 }
-
 
 function rename_repo() {
     active_user=$(gh api user --jq .login)
@@ -259,6 +252,83 @@ function delete_repo() {
     pause
 }
 
+manage_scopes() {
+  echo
+  echo "🔎 Mengecek token scopes akun aktif..."
+  TOKEN=$(gh auth token 2>/dev/null)
+  if [[ -z "$TOKEN" ]]; then
+    echo "⚠️ Belum ada token. Silakan login dulu."
+    read -p "Tekan [Enter] untuk kembali..."
+    return
+  fi
+
+  # Ambil scopes via header response
+  SCOPES=$(curl -s -I -H "Authorization: token $TOKEN" https://api.github.com/user | grep "X-OAuth-Scopes:" | sed 's/X-OAuth-Scopes: //')
+  echo "✅ Scopes aktif saat ini: ${SCOPES:-<tidak ada>}"
+  echo
+
+  # Daftar scopes populer & sering dipakai
+  AVAILABLE_SCOPES=(
+    "repo"
+    "workflow"
+    "gist"
+    "notifications"
+    "read:user"
+    "user:email"
+    "user:follow"
+    "admin:repo_hook"
+    "write:repo_hook"
+    "read:repo_hook"
+    "delete_repo"
+    "packages"
+    "write:packages"
+    "read:packages"
+    "project"
+    "admin:org"
+    "write:org"
+    "read:org"
+    "discussion"
+    "codespace"
+    "security_events"
+  )
+
+  echo "📋 Daftar scopes populer:"
+  i=1
+  for s in "${AVAILABLE_SCOPES[@]}"; do
+    if [[ "$SCOPES" == *"$s"* ]]; then
+      echo "  $i) $s ✅"
+    else
+      echo "  $i) $s ❌"
+    fi
+    ((i++))
+  done
+  echo "  0) Batal"
+  echo "--------------------------------------------"
+  read -p "👉 Masukkan nomor scope yang ingin diaktifkan (pisahkan dengan spasi): " INPUT
+
+  if [[ "$INPUT" == "0" ]]; then
+    echo "Batal menambah scope."
+  else
+    # Gabungkan scope lama + baru
+    NEW_SCOPES=($SCOPES)
+    for num in $INPUT; do
+      idx=$((num-1))
+      if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_SCOPES[@]} ]]; then
+        NEW_SCOPES+=("${AVAILABLE_SCOPES[$idx]}")
+      fi
+    done
+    # Hilangkan duplikat
+    UNIQUE_SCOPES=$(echo "${NEW_SCOPES[@]}" | tr ' ' '\n' | sort -u | tr '\n' ',' | sed 's/,$//')
+
+    echo "⚡ Login ulang untuk mengaktifkan scopes: $UNIQUE_SCOPES"
+    gh auth login -w --scopes "$UNIQUE_SCOPES"
+  fi
+
+  read -p "Tekan [Enter] untuk kembali ke menu..."
+}
+
+
+# === Main Menu ===
 while true; do
     clear
     echo -e "${BLUE}=== $APP_NAME ===${NC}"
@@ -272,6 +342,7 @@ while true; do
     echo "6. Ubah nama repo"
     echo "7. Ubah deskripsi repo"
     echo "8. Hapus repo"
+    echo "9. Lihat & aktifkan token scopes"
     echo "0. Keluar"
     echo
     read -p "Pilih menu: " choice
@@ -285,6 +356,7 @@ while true; do
         6) rename_repo ;;
         7) edit_description ;;
         8) delete_repo ;;
+        9) manage_scopes ;;
         0) break ;;
         *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
     esac
