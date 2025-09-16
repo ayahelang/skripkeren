@@ -49,7 +49,7 @@ function pilih_akun() {
     gh auth switch -u "$username"
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ Akun aktif sekarang: $username ${NC}"
+        echo -e "✅ Akun aktif sekarang: ${GREEN}$username ${NC}"
         echo "Verifikasi:"
         gh auth status --hostname github.com
     else
@@ -67,7 +67,9 @@ function login_github() {
 
 function upload_folder() {
     echo
+    echo -e "📂 Working directory: ${CYAN}$(pwd)${NC}"
     echo -e "${CYAN}📂 Folder yang ada di direktori ini:${NC}"
+
     folders=($(ls -d */ 2>/dev/null))
     if [ ${#folders[@]} -eq 0 ]; then
         echo -e "${RED}❌ Tidak ada folder terdeteksi.${NC}"
@@ -90,7 +92,7 @@ function upload_folder() {
     cd "$folder" || return
     
     echo
-    echo -e "📡 ${GREEN}Daftar repo dari GitHub $username${NC}"
+    echo -e "📡 Daftar repo dari GitHub ${GREEN}$username${NC}"
     repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
     if [ ${#repos[@]} -eq 0 ]; then
         echo -e "${RED}❌ Tidak ada repo terdeteksi.${NC}"
@@ -113,7 +115,7 @@ function upload_folder() {
     fi
     
     echo
-    echo -e "🚀 ${YELLOW}Upload folder '$folder' ke repo '$repo'...${NC}"
+    echo -e "🚀 Upload folder ${YELLOW}'$folder'${NC} ke repo ${GREEN}'$repo'...${NC}"
     
     git init
     git add .
