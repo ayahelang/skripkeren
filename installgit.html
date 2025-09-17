@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panduan: Cara Install Git Bash (Windows)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#60a5fa;--text:#e6eef8}
+    *{box-sizing:border-box}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:linear-gradient(180deg,#071129 0%, #071827 100%); color:var(--text); line-height:1.5}
+    .wrap{max-width:900px;margin:40px auto;padding:24px}
+    header{display:flex;gap:16px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3b82f6);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{margin:0;font-size:1.5rem}
+    p.lead{color:var(--muted);margin-top:6px}
+
+    .card{background:var(--card);padding:18px;border-radius:12px;margin-top:18px;box-shadow:0 6px 18px rgba(2,6,23,.6)}
+    h2{margin:0 0 12px 0}
+    ol{padding-left:18px}
+    code, pre{background:#081025;padding:6px;border-radius:6px;display:block;color:#dbeafe;border:1px solid rgba(255,255,255,.03);overflow:auto}
+    pre{padding:12px}
+    .kbd{display:inline-block;padding:6px 8px;border-radius:6px;background:#051226;border:1px solid rgba(255,255,255,.02);font-family:monospace}
+    .note{background:linear-gradient(180deg,#071429,#071b36);padding:10px;border-radius:8px;border-left:4px solid var(--accent);color:var(--muted)}
+    a{color:var(--accent);text-decoration:none}
+    .row{display:grid;grid-template-columns:1fr 320px;gap:16px}
+    @media(max-width:880px){.row{grid-template-columns:1fr} .wrap{margin:18px}}
+    footer{margin-top:18px;color:var(--muted);font-size:.9rem}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:linear-gradient(180deg,#1f3a8a,#1e40af);padding:10px 12px;border-radius:8px;color:white;text-decoration:none;border:0;display:inline-block}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">GB</div>
+      <div>
+        <h1>Panduan: Cara Install Git Bash (Windows)</h1>
+        <p class="lead">Langkah demi langkah cepat untuk memasang Git Bash dan mulai menggunakan Git di Windows.</p>
+      </div>
+    </header>
+
+    <div class="row">
+      <main>
+        <section class="card">
+          <h2>Ringkasan singkat</h2>
+          <p class="note">Git for Windows menyediakan <strong>Git Bash</strong> — terminal yang memberikan lingkungan mirip UNIX di Windows. Panduan ini untuk pengguna Windows (Win10/Win11).</p>
+        </section>
+
+        <section class="card">
+          <h2>1. Unduh installer</h2>
+          <ol>
+            <li>Buka situs resmi <a href="https://git-scm.com/" target="_blank" rel="noopener">git-scm.com</a>.</li>
+            <li>Klik tombol <em>Download</em> untuk Windows. Anda akan mendapatkan file bernama seperti <code>Git-*-64-bit.exe</code> (atau 32-bit jika menggunakan arsitektur lama).</li>
+            <li>Simpan file di folder <em>Downloads</em> lalu jalankan dengan meng-klik dua kali.</li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h2>2. Jalankan installer — pilihan penting</h2>
+          <p>Ikuti wizard installer. Pada beberapa layar akan muncul opsi; berikut rekomendasi yang aman untuk pemula:</p>
+          <ol>
+            <li><strong>Select Components</strong>: biarkan opsi default (Git Bash, Git GUI). Centang "Windows Explorer integration" jika ingin tombol klik kanan &quot;Git Bash Here&quot;.</li>
+            <li><strong>Choosing the default editor used by Git</strong>: pilih editor yang Anda sukai (default seringnya Vim). Jika tidak familiar, pilih <em>Use Visual Studio Code as Git's default editor</em> jika menggunakan VS Code.</li>
+            <li><strong>Adjusting your PATH environment</strong>:
+              <ul>
+                <li>Rekomendasi: <em>Git from the command line and also from 3rd-party software</em> — ini menambahkan git ke PATH sehingga dapat dipakai di Command Prompt, PowerShell, serta program lain.</li>
+              </ul>
+            </li>
+            <li><strong>Choosing HTTPS transport backend</strong>: gunakan default <em>Use the OpenSSL library</em>.</li>
+            <li><strong>Configuring line ending conversions</strong>:
+              <ul>
+                <li>Rekomendasi umum untuk proyek lintas platform: <em>Checkout as-is, commit Unix-style line endings</em> (atau opsi "Checkout Windows-style, commit Unix-style" jika proyek khusus Windows).</li>
+              </ul>
+            </li>
+            <li>Lanjutkan sampai selesai dan klik <strong>Finish</strong>.</li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h2>3. Menjalankan Git Bash</h2>
+          <ol>
+            <li>Buka menu Start → ketik <span class="kbd">Git Bash</span> → Enter.</li>
+            <li>Atau di File Explorer: klik kanan → <em>Git Bash Here</em> (jika integrasi Explorer diaktifkan saat instalasi).</li>
+          </ol>
+          <p class="note">Git Bash akan membuka jendela terminal dengan prompt mirip UNIX (bash). Anda dapat menjalankan perintah Git dan perintah shell dasar.</p>
+        </section>
+
+        <section class="card">
+          <h2>4. Verifikasi dan konfigurasi awal</h2>
+          <p>Buka Git Bash lalu jalankan perintah berikut untuk memastikan Git terpasang dan mengatur identitas Anda:</p>
+          <pre>git --version
+# contoh output: git version 2.###.##</pre>
+          <pre>git config --global user.name "Nama Anda"
+git config --global user.email "email@domain.com"</pre>
+          <p>Untuk mengecek konfigurasi:</p>
+          <pre>git config --list</pre>
+        </section>
+
+        <section class="card">
+          <h2>5. Opsi lanjutan yang sering dipakai</h2>
+          <ul>
+            <li><strong>Ganti editor default Git</strong>:
+              <pre>git config --global core.editor "code --wait"</pre>
+            </li>
+            <li><strong>Menghasilkan SSH key (untuk GitHub / GitLab)</strong>:
+              <pre>ssh-keygen -t ed25519 -C "email@domain.com"
+# lalu tambahkan isi ~/.ssh/id_ed25519.pub ke akun Git hosting Anda</pre>
+            </li>
+            <li><strong>Cache credential</strong> (agar tidak memasukkan password berulang):
+              <pre>git config --global credential.helper manager-core</pre>
+            </li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>6. Troubleshooting singkat</h2>
+          <ul>
+            <li><strong>Perintah git tidak ditemukan</strong>: pastikan Anda memilih opsi menambahkan ke PATH saat instalasi atau ulangi instalasi dan pilih opsi tersebut.</li>
+            <li><strong>Masalah baris akhir (CRLF/LF)</strong>: gunakan salah satu opsi line ending saat instalasi sesuai kebutuhan tim/project.</li>
+            <li><strong>SSH key tidak berfungsi</strong>: pastikan agen ssh berjalan, dan kunci publik sudah ditambahkan ke layanan Git (GitHub/GitLab).</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>7. Tes cepat — buat repo lokal</h2>
+          <pre>mkdir demo-git
+cd demo-git
+git init
+echo "Halo" > README.md
+git add README.md
+git commit -m "Initial commit"
+# cek status
+git status</pre>
+          <p class="note">Jika langkah di atas berhasil tanpa error, Git Bash Anda siap untuk bekerja dengan repositori.</p>
+        </section>
+
+        <footer>
+          <p>Butuh versi bahasa Inggris, PDF, atau petunjuk untuk macOS / Linux juga? Beri tahu saya — saya bisa buatkan.</p>
+        </footer>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h2>Ringkasan perintah penting</h2>
+          <pre>git --version
+git config --global user.name "Nama"
+git config --global user.email "email@domain.com"
+ssh-keygen -t ed25519 -C "email@domain.com"</pre>
+          <div style="margin-top:10px" class="actions">
+            <a class="btn" href="https://git-scm.com/" target="_blank" rel="noopener">Buka git-scm.com</a>
+            <a class="btn" href="#" onclick="window.print();return false;">Cetak / Print</a>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2>Catatan keamanan singkat</h2>
+          <p class="note">Jangan membagikan kunci privat SSH. Simpan backup konfigurasi Git (username/email) jika berganti mesin.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
