@@ -53,6 +53,7 @@
       padding-left: 20px;
     }
     pre {
+      position: relative;
       background: var(--code-bg);
       color: var(--code-fg);
       padding: 14px;
@@ -80,6 +81,21 @@
       font-size: 0.85rem;
       color: #6b7280;
     }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+    .copy-btn:hover {
+      background: #1d4ed8;
+    }
     @media (max-width: 600px) {
       header h1 { font-size: 1.4rem; }
       h2 { font-size: 1.2rem; }
@@ -101,7 +117,7 @@
         <li><a href="installgit.html" target="_blank">Terminal Git Bash</a></li>
         <li>
           GitHub CLI (gh), copas dan jalankan script ini di Terminal Git Bash:
-          <pre>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)</pre>
+          <pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)</pre>
         </li>
       </ol>
       <div class="note">💡 Pastikan perintah <code>git</code> dan <code>gh</code> bisa dijalankan di terminal.</div>
@@ -110,19 +126,19 @@
     <section>
       <h2>2. Menjalankan Skrip</h2>
       <p>Buka terminal lalu jalankan salah satu perintah berikut:</p>
-      <pre>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+      <pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
       <p>atau:</p>
-      <pre>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+      <pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
       <p>atau:</p>
-      <pre>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
+      <pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
       <p>atau:</p>
-      <pre>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
+      <pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
     </section>
 
     <section>
       <h2>3. Menu Utama</h2>
       <p>Saat dijalankan, Anda akan melihat menu interaktif seperti berikut:</p>
-      <pre>
+      <pre><button class="copy-btn">Copy</button>
 === Repo Manager by Ted ===
 Menu:
  1. Pilih akun aktif
@@ -136,7 +152,6 @@ Menu:
  9. Lihat & aktifkan token scopes
 10. Atur Collaborator
  0. Keluar
-
       </pre>
     </section>
 
@@ -150,11 +165,23 @@ Menu:
     </section>
 
     <p>Coba juga install Google Chrome di Linuk Bookworm Puppy dg perintah berikut:</p>
-    <pre>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy:sh)</pre>
+    <pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy.sh)</pre>
 
     <footer>
       &copy; 2025 — Dokumentasi <code>t-rm6.sh</code> | Repo: ayahelang/skripkeren
     </footer>
   </div>
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.parentElement.innerText.replace("Copy", "").trim();
+        navigator.clipboard.writeText(code).then(() => {
+          btn.innerText = "Copied!";
+          setTimeout(() => btn.innerText = "Copy", 1500);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
