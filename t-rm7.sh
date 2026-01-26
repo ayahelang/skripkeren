@@ -684,6 +684,7 @@ function delete_repo_items() {
 # === Main Menu ===
 while true; do
     clear
+    echo
     echo -e "${BLUE}=== $APP_NAME $APP_AUTHOR ($APP_BUILD) ===${NC}"
     echo
     echo "Menu:"
