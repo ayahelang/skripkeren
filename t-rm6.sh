@@ -15,6 +15,31 @@ pause() {
     read -p "Tekan [Enter] untuk kembali ke menu..."
 }
 
+
+function change_workdir() {
+    echo
+    echo -e "${CYAN}📁 Ubah Working Directory (Full Path)${NC}"
+    echo -e "📌 Direktori saat ini: ${YELLOW}$(pwd)${NC}"
+    echo
+    read -e -p "Masukkan full path tujuan (atau kosong untuk batal): " target_dir
+
+    if [ -z "$target_dir" ]; then
+        echo -e "${CYAN}ℹ️ Dibatalkan. Tetap di: $(pwd)${NC}"
+        pause
+        return
+    fi
+
+    if [ -d "$target_dir" ]; then
+        cd "$target_dir" || return
+        echo -e "${GREEN}✅ Berhasil pindah ke:${NC} $(pwd)"
+    else
+        echo -e "${RED}❌ Direktori tidak ditemukan:${NC} $target_dir"
+    fi
+
+    pause
+}
+
+
 function pilih_akun() {
     echo
     accounts=($(gh auth status 2>/dev/null | grep "Logged in to github.com account" | sed -E 's/.*account ([^ ]+).*/\1/'))
@@ -573,14 +598,15 @@ while true; do
     echo " 1. Pilih akun aktif"
     echo " 2. Login akun GitHub"
     echo " 3. Buat repo baru"
-    echo " 4. Upload folder ke repo"
-    echo " 5. Tampilkan isi repo"
-    echo " 6. Aktifkan GitHub Pages"
-    echo " 7. Ubah nama repo"
-    echo " 8. Ubah deskripsi repo"
-    echo " 9. Hapus repo"
-    echo "10. Lihat & aktifkan token scopes"
-    echo "11. Atur Collaborator"
+    echo " 4. Ganti Working Directory (cd full path)"
+    echo " 5. Upload folder ke repo"
+    echo " 6. Tampilkan isi repo"
+    echo " 7. Aktifkan GitHub Pages"
+    echo " 8. Ubah nama repo"
+    echo " 9. Ubah deskripsi repo"
+    echo "10. Hapus repo"
+    echo "11. Lihat & aktifkan token scopes"
+    echo "12. Atur Collaborator"
     echo " 0. Keluar"
     echo
     read -p "Pilih menu: " choice
@@ -589,14 +615,15 @@ while true; do
         1) pilih_akun ;;
         2) login_github ;;
         3) create_new_repo ;;
-        4) upload_folder ;;
-        5) list_repo_files ;;
-        6) activate_pages ;;
-        7) rename_repo ;;
-        8) edit_description ;;
-        8) delete_repo ;;
-        10) manage_scopes ;;
-        11) manage_collaborators ;;
+        4) change_workdir ;;
+        5) upload_folder ;;
+        6) list_repo_files ;;
+        7) activate_pages ;;
+        8) rename_repo ;;
+        9) edit_description ;;
+        10) delete_repo ;;
+        11) manage_scopes ;;
+        12) manage_collaborators ;;
         0) break ;;
         *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
     esac
