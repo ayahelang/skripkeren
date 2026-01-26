@@ -1,6 +1,9 @@
 #!/bin/bash
 
 APP_NAME="Repo Manager v7 by Ted"
+APP_NAME="Repo Manager v7a"
+APP_AUTHOR="by Ted"
+APP_BUILD="2026.01"
 
 # Warna ANSI
 RED='\033[0;31m'
@@ -681,7 +684,7 @@ function delete_repo_items() {
 # === Main Menu ===
 while true; do
     clear
-    echo -e "${BLUE}=== $APP_NAME ===${NC}"
+    echo -e "${BLUE}=== $APP_NAME $APP_AUTHOR ($APP_BUILD) ===${NC}"
     echo
     echo "Menu:"
     echo " 1. Pilih akun aktif"
