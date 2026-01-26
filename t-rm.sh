@@ -589,6 +589,100 @@ function manage_collaborators() {
     done
 }
 
+function delete_repo_items() {
+    active_user=$(gh api user --jq .login)
+
+    echo -e "${CYAN}=== Pilih Repository (akun: $active_user) ===${NC}"
+    repos=($(gh repo list --limit 50 --json name --jq '.[].name'))
+    for i in "${!repos[@]}"; do
+        echo "$((i+1)). ${repos[$i]}"
+    done
+
+    read -p "👉 Nomor repo: " repo_idx
+    repo=${repos[$((repo_idx-1))]}
+    if [ -z "$repo" ]; then
+        echo -e "${RED}❌ Repo tidak valid.${NC}"
+        pause
+        return
+    fi
+
+    echo
+    echo -e "${CYAN}📂 Isi root repo $repo:${NC}"
+
+    mapfile -t items < <(
+        gh api repos/$active_user/$repo/contents --jq '.[] | "\(.type)|\(.path)|\(.sha)"'
+    )
+
+    if [ ${#items[@]} -eq 0 ]; then
+        echo -e "${YELLOW}⚠️ Repo kosong.${NC}"
+        pause
+        return
+    fi
+
+    i=1
+    for item in "${items[@]}"; do
+        type=$(echo "$item" | cut -d'|' -f1)
+        path=$(echo "$item" | cut -d'|' -f2)
+        icon="📄"
+        [ "$type" = "dir" ] && icon="📁"
+        echo "$i. $icon $path"
+        ((i++))
+    done
+
+    echo
+    read -p "👉 Nomor file/folder yang dihapus (contoh: 2 5-9): " input
+
+    # parsing input (angka & range)
+    targets=()
+    for token in $input; do
+        if [[ "$token" =~ ^[0-9]+-[0-9]+$ ]]; then
+            start=${token%-*}
+            end=${token#*-}
+            for ((n=start; n<=end; n++)); do
+                targets+=("$n")
+            done
+        elif [[ "$token" =~ ^[0-9]+$ ]]; then
+            targets+=("$token")
+        fi
+    done
+
+    if [ ${#targets[@]} -eq 0 ]; then
+        echo -e "${RED}❌ Tidak ada item valid.${NC}"
+        pause
+        return
+    fi
+
+    echo
+    echo -e "${YELLOW}⚠️ Item yang akan dihapus:${NC}"
+    for n in "${targets[@]}"; do
+        idx=$((n-1))
+        [ -n "${items[$idx]}" ] && echo " - $(echo "${items[$idx]}" | cut -d'|' -f2)"
+    done
+
+    echo
+    read -p "Ketik 'yes' untuk konfirmasi hapus PERMANEN: " confirm
+    [ "$confirm" != "yes" ] && echo "Batal." && pause && return
+
+    for n in "${targets[@]}"; do
+        idx=$((n-1))
+        item="${items[$idx]}"
+        [ -z "$item" ] && continue
+
+        type=$(echo "$item" | cut -d'|' -f1)
+        path=$(echo "$item" | cut -d'|' -f2)
+        sha=$(echo "$item" | cut -d'|' -f3)
+
+        echo -e "🗑️ Menghapus $path ..."
+        gh api -X DELETE repos/$active_user/$repo/contents/$path \
+            -f message="Delete $path via Repo Manager" \
+            -f sha="$sha" >/dev/null 2>&1 && \
+            echo -e "${GREEN}✅ $path dihapus${NC}" || \
+            echo -e "${RED}❌ Gagal hapus $path${NC}"
+    done
+
+    pause
+}
+
 # === Main Menu ===
 while true; do
     clear
@@ -607,6 +701,7 @@ while true; do
     echo "10. Hapus repo"
     echo "11. Lihat & aktifkan token scopes"
     echo "12. Atur Collaborator"
+    echo "13. Hapus file / folder di repo"
     echo " 0. Keluar"
     echo
     read -p "Pilih menu: " choice
@@ -624,6 +719,7 @@ while true; do
         10) delete_repo ;;
         11) manage_scopes ;;
         12) manage_collaborators ;;
+        13) delete_repo_items ;;
         0) break ;;
         *) echo -e "${RED}❌ Pilihan tidak valid.${NC}" ; pause ;;
     esac
