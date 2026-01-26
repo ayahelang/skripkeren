@@ -600,29 +600,19 @@ function delete_repo_items() {
 
     read -p "👉 Nomor repo: " repo_idx
     repo=${repos[$((repo_idx-1))]}
-    if [ -z "$repo" ]; then
-        echo -e "${RED}❌ Repo tidak valid.${NC}"
-        pause
-        return
-    fi
+    [ -z "$repo" ] && echo "❌ Repo tidak valid" && pause && return
 
     echo
     echo -e "${CYAN}📂 Isi root repo $repo:${NC}"
 
     mapfile -t items < <(
-        gh api repos/$active_user/$repo/contents --jq '.[] | "\(.type)|\(.path)|\(.sha)"'
+        gh api repos/$active_user/$repo/contents --jq '.[] | "\(.type)|\(.path)"'
     )
-
-    if [ ${#items[@]} -eq 0 ]; then
-        echo -e "${YELLOW}⚠️ Repo kosong.${NC}"
-        pause
-        return
-    fi
 
     i=1
     for item in "${items[@]}"; do
-        type=$(echo "$item" | cut -d'|' -f1)
-        path=$(echo "$item" | cut -d'|' -f2)
+        type=${item%%|*}
+        path=${item#*|}
         icon="📄"
         [ "$type" = "dir" ] && icon="📁"
         echo "$i. $icon $path"
@@ -630,33 +620,24 @@ function delete_repo_items() {
     done
 
     echo
-    read -p "👉 Nomor file/folder yang dihapus (contoh: 2 5-9): " input
+    read -p "👉 Nomor file/folder (contoh: 2 5-9): " input
 
-    # parsing input (angka & range)
     targets=()
     for token in $input; do
         if [[ "$token" =~ ^[0-9]+-[0-9]+$ ]]; then
-            start=${token%-*}
-            end=${token#*-}
-            for ((n=start; n<=end; n++)); do
+            for ((n=${token%-*}; n<=${token#*-}; n++)); do
                 targets+=("$n")
             done
-        elif [[ "$token" =~ ^[0-9]+$ ]]; then
+        else
             targets+=("$token")
         fi
     done
-
-    if [ ${#targets[@]} -eq 0 ]; then
-        echo -e "${RED}❌ Tidak ada item valid.${NC}"
-        pause
-        return
-    fi
 
     echo
     echo -e "${YELLOW}⚠️ Item yang akan dihapus:${NC}"
     for n in "${targets[@]}"; do
         idx=$((n-1))
-        [ -n "${items[$idx]}" ] && echo " - $(echo "${items[$idx]}" | cut -d'|' -f2)"
+        [ -n "${items[$idx]}" ] && echo " - ${items[$idx]#*|}"
     done
 
     echo
@@ -668,16 +649,30 @@ function delete_repo_items() {
         item="${items[$idx]}"
         [ -z "$item" ] && continue
 
-        type=$(echo "$item" | cut -d'|' -f1)
-        path=$(echo "$item" | cut -d'|' -f2)
-        sha=$(echo "$item" | cut -d'|' -f3)
+        type=${item%%|*}
+        path=${item#*|}
 
-        echo -e "🗑️ Menghapus $path ..."
-        gh api -X DELETE repos/$active_user/$repo/contents/$path \
-            -f message="Delete $path via Repo Manager" \
-            -f sha="$sha" >/dev/null 2>&1 && \
-            echo -e "${GREEN}✅ $path dihapus${NC}" || \
-            echo -e "${RED}❌ Gagal hapus $path${NC}"
+        if [ "$type" = "file" ]; then
+            sha=$(gh api repos/$active_user/$repo/contents/$path --jq .sha)
+            gh api -X DELETE repos/$active_user/$repo/contents/$path \
+              -f message="Delete $path via Repo Manager" \
+              -f sha="$sha" >/dev/null && \
+              echo -e "${GREEN}✅ File $path dihapus${NC}" || \
+              echo -e "${RED}❌ Gagal hapus $path${NC}"
+
+        else
+            echo -e "${CYAN}📁 Menghapus folder $path (rekursif)...${NC}"
+            files=$(gh api repos/$active_user/$repo/contents/$path --jq '.[].path')
+
+            for f in $files; do
+                sha=$(gh api repos/$active_user/$repo/contents/$f --jq .sha)
+                gh api -X DELETE repos/$active_user/$repo/contents/$f \
+                  -f message="Delete $f via Repo Manager" \
+                  -f sha="$sha" >/dev/null && \
+                  echo "  🗑️ $f"
+            done
+            echo -e "${GREEN}✅ Folder $path dibersihkan${NC}"
+        fi
     done
 
     pause
