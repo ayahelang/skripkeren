@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_NAME="Repo Manager v5 by Ted"
+APP_NAME="Repo Manager v7 by Ted"
 
 # Warna ANSI
 RED='\033[0;31m'
