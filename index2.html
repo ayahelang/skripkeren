@@ -331,102 +331,74 @@ Tutup
     });
   </script>
 
-  /* ================= Splash Repo Converter ================= */
+</script>
 
+<script>
 const splash=document.getElementById("repoSplash");
-
 const input=document.getElementById("repoInput");
-
 const result=document.getElementById("repoResult");
-
 const thumb=document.getElementById("repoThumb");
-
 const link=document.getElementById("repoLink");
 
 let pagesURL="";
 
 window.addEventListener("load",()=>{
-
-setTimeout(()=>{
-
-splash.classList.add("show");
-
-},3000);
-
+  setTimeout(()=>{
+    splash.classList.add("show");
+  },3000);
 });
 
 document.getElementById("btnCloseSplash").onclick=()=>{
-
-splash.classList.remove("show");
-
+  splash.classList.remove("show");
 };
 
 document.getElementById("btnConvert").onclick=()=>{
+  const url=input.value.trim();
+  const m=url.match(/github\.com\/([^\/]+)\/([^\/?#]+)/i);
 
-const url=input.value.trim();
+  if(!m){
+    alert("URL repository tidak valid.");
+    return;
+  }
 
-const m=url.match(/github\.com\/([^\/]+)\/([^\/?#]+)/i);
+  const user=m[1];
+  const repo=m[2].replace(/\.git$/i,"");
 
-if(!m){
+  pagesURL=`https://${user}.github.io/${repo}/`;
 
-alert("URL repository tidak valid.");
+  result.innerHTML=`
+    <b>GitHub Pages:</b><br><br>
+    <a href="${pagesURL}" target="_blank">${pagesURL}</a>
+  `;
 
-return;
+  link.href=pagesURL;
 
-}
-
-const user=m[1];
-
-const repo=m[2];
-
-pagesURL=`https://${user}.github.io/${repo}/`;
-
-result.innerHTML=`
-<b>GitHub Pages:</b><br><br>
-<a href="${pagesURL}" target="_blank">${pagesURL}</a>
-`;
-
-link.href=pagesURL;
-
-thumb.src=`https://s.wordpress.com/mshots/v1/${encodeURIComponent(pagesURL)}?w=1200`;
-
-thumb.style.display="block";
-
+  thumb.src=`https://s.wordpress.com/mshots/v1/${encodeURIComponent(pagesURL)}?w=1200`;
+  thumb.style.display="block";
 };
 
 document.getElementById("btnCopyResult").onclick=()=>{
+  if(!pagesURL){
+    alert("Belum ada hasil.");
+    return;
+  }
 
-if(!pagesURL){
+  navigator.clipboard.writeText(pagesURL);
 
-alert("Belum ada hasil.");
+  const btn=document.getElementById("btnCopyResult");
+  btn.innerText="Copied!";
 
-return;
-
-}
-
-navigator.clipboard.writeText(pagesURL);
-
-const btn=document.getElementById("btnCopyResult");
-
-btn.innerText="Copied!";
-
-setTimeout(()=>{
-
-btn.innerText="Copy";
-
-},1500);
-
+  setTimeout(()=>{
+    btn.innerText="Copy";
+  },1500);
 };
 
 input.addEventListener("keydown",e=>{
-
-if(e.key==="Enter"){
-
-document.getElementById("btnConvert").click();
-
-}
-
+  if(e.key==="Enter"){
+    document.getElementById("btnConvert").click();
+  }
 });
+</script>
   
   <script src="https://silverhawk.web.id/lock/lock.js"></script>
 </body>
