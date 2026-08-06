@@ -2,88 +2,135 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Panduan Repo Manager v7 by Ted</title>
 <link rel="stylesheet" href="https://silverhawk.web.id/lock/lock.css">
-<style>
-:root{--bg:#f9fafb;--fg:#111827;--accent:#2563eb;--accent-light:#dbeafe;--code-bg:#1e293b;--code-fg:#f8fafc;--note-bg:#ecfdf5;--note-border:#10b981}
-*{box-sizing:border-box}
-body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:var(--bg);color:var(--fg);line-height:1.6}
-.container{max-width:900px;margin:auto;padding:20px}
-header{text-align:center;margin-bottom:24px}
-header h1{margin:0;color:var(--accent)}
-h2{color:var(--accent)}
-pre{position:relative;background:var(--code-bg);color:var(--code-fg);padding:14px;border-radius:10px;overflow:auto}
-code{background:var(--accent-light);color:var(--accent);padding:2px 6px;border-radius:6px}
-.note{background:var(--note-bg);border-left:5px solid var(--note-border);padding:12px;border-radius:6px}
-.copy-btn{position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;border:0;padding:4px 10px;border-radius:6px;cursor:pointer}
-#repoSplash{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.3s;z-index:9999}
-#repoSplash.show{opacity:1;visibility:visible}
-.card{width:min(92%,700px);background:#fff;padding:22px;border-radius:18px}
-.card input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px}
-.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.btns button{border:0;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;cursor:pointer}
-#close{background:#ef4444}
-#thumb{display:none;width:100%;margin-top:15px;border-radius:10px;border:1px solid #ddd}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="repoSplash">
-<div class="card">
-<h2>🚀 GitHub Repo → GitHub Pages</h2>
-<p>Tempel alamat repository GitHub.</p>
-<input id="repo" placeholder="https://github.com/username/repository">
-<div class="btns">
-<button id="convert">Convert</button>
-<button id="copy">Copy</button>
-<button id="open">Open</button>
-<button id="close">Close</button>
-</div>
-<div id="out" style="margin-top:15px"></div>
-<a id="alink" target="_blank"><img id="thumb"></a>
-</div>
-</div>
 
 <div class="container">
-<header><h1>Repo Manager v7 by Ted</h1><p>Skrip Bash untuk manajemen akun & repository GitHub via terminal</p></header>
-<section><h2>Menjalankan Skrip</h2>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
-<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+<header>
+<h1>Repo Manager v7 by Ted</h1>
+<p>Skrip Bash untuk manajemen akun & repository GitHub via terminal</p>
+</header>
+
+<section>
+<h2>1. Persiapan</h2>
+<p>Install aplikasi berikut di laptop/Komputer Anda:</p>
+<ol>
+<li><a href="installgit.html" target="_blank">Terminal Git Bash</a></li>
+<li>
+GitHub CLI (gh), copas dan jalankan script ini di Terminal Git Bash:
+<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)</pre>
+</li>
+</ol>
+<div class="note">💡 Pastikan perintah <code>git</code> dan <code>gh</code> bisa dijalankan di terminal.</div>
 </section>
+
+<section>
+<h2>2. Menjalankan Skrip</h2>
+<p>Buka terminal lalu jalankan salah satu perintah berikut:</p>
+
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+
+<p>atau:</p>
+
+<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+
+<p>atau:</p>
+
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
+
+<p>atau:</p>
+
+<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
+
+</section>
+
+<section>
+<h2>3. Menu Utama</h2>
+
+<p>Saat dijalankan, Anda akan melihat menu interaktif seperti berikut:</p>
+
+<pre><button class="copy-btn">Copy</button>
+=== Repo Manager V7 by Ted ===
+Menu:
+ 1) pilih_akun
+ 2) login_github
+ 3) create_new_repo
+ 4) change_workdir
+ 5) upload_folder
+ 6) list_repo_files
+ 7) activate_pages
+ 8) rename_repo
+ 9) edit_description
+10) delete_repo
+11) manage_scopes
+12) manage_collaborators
+13) delete_repo_items
+ 0) Keluar
+</pre>
+</section>
+
+<section>
+<h2>4. Contoh Penggunaan</h2>
+
+<ol>
+<li>Login GitHub dengan menu <code>2</code>.</li>
+<li>Pilih akun aktif dengan menu <code>1</code>.</li>
+<li>Gunakan menu lain sesuai kebutuhan, misalnya upload folder atau aktifkan GitHub Pages.</li>
+</ol>
+</section>
+
+<p>Coba juga install Google Chrome di Linux Bookworm Puppy dg perintah berikut:</p>
+
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy.sh)</pre>
+
+<footer>
+&copy; 2025 — Dokumentasi <code>t-rm7.sh</code> | Repo: ayahelang/skripkeren
+</footer>
+
 </div>
 
-<script>
-document.querySelectorAll('.copy-btn').forEach(b=>{
- b.onclick=()=>{
-  const t=b.parentElement.innerText.replace('Copy','').trim();
-  navigator.clipboard.writeText(t);
-  b.innerText='Copied!';
-  setTimeout(()=>b.innerText='Copy',1500);
- };
-});
+ <div id="repoSplash">
+  <div class="repo-card">
+    <div class="repo-header">
+      <h2>🚀 GitHub Repo → GitHub Pages</h2>
+      <button id="btnCloseSplash" class="closeSplash" title="Tutup">&times;</button>
+    </div>
 
-let page="";
-window.addEventListener("load",()=>setTimeout(()=>repoSplash.classList.add("show"),3000));
-close.onclick=()=>repoSplash.classList.remove("show");
-convert.onclick=()=>{
- const m=repo.value.trim().match(/github\.com\/([^\/]+)\/([^\/?#]+)/i);
- if(!m){alert("URL tidak valid");return;}
- page=`https://${m[1]}.github.io/${m[2]}/`;
- out.innerHTML=`<a href="${page}" target="_blank">${page}</a>`;
- alink.href=page;
- thumb.src=`https://s.wordpress.com/mshots/v1/${encodeURIComponent(page)}?w=1200`;
- thumb.style.display="block";
- fetch(page,{mode:"no-cors"}).catch(()=>{});
-};
-copy.onclick=()=>{
- if(!page)return;
- navigator.clipboard.writeText(page);
- copy.innerText="Copied!";
- setTimeout(()=>copy.innerText="Copy",1500);
-};
-open.onclick=()=>{if(page)window.open(page,"_blank");};
-repo.onkeydown=e=>{if(e.key==="Enter")convert.click();}
-</script>
+    <p>Tempel alamat repository GitHub, lalu klik <b>Convert</b>.</p>
+
+    <input
+      id="repoInput"
+      class="repo-input"
+      type="url"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="https://github.com/username/repository">
+
+    <div class="repo-actions">
+      <button id="btnConvert">Convert</button>
+      <button id="btnCopyResult">Copy</button>
+      <button id="btnOpenResult">Open</button>
+    </div>
+
+    <div id="repoStatus" class="repo-status"></div>
+
+    <div id="repoResult"></div>
+
+    <a id="repoLink" href="#" target="_blank" rel="noopener">
+      <img
+        id="repoThumb"
+        src=""
+        alt="Preview GitHub Pages">
+    </a>
+  </div>
+</div>
+
+<script src="script.js"></script>
 <script src="https://silverhawk.web.id/lock/lock.js"></script>
+
 </body>
 </html>
