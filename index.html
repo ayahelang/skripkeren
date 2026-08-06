@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GitHub Pages Converter</title>
+<style>
+body{
+font-family:Segoe UI,Arial,sans-serif;
+background:#f4f6f9;
+margin:0;
+padding:30px;
+}
+.card{
+max-width:900px;
+margin:auto;
+background:#fff;
+padding:25px;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+h1{
+margin-top:0;
+color:#2563eb;
+}
+input{
+width:100%;
+padding:12px;
+font-size:16px;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+.buttons{
+margin-top:15px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+button{
+padding:10px 18px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:#fff;
+cursor:pointer;
+}
+button:hover{
+background:#1d4ed8;
+}
+#result{
+margin-top:20px;
+font-size:15px;
+}
+.browser{
+margin-top:20px;
+border:1px solid #ccc;
+border-radius:10px;
+overflow:hidden;
+display:none;
+}
+.topbar{
+display:flex;
+align-items:center;
+gap:8px;
+padding:10px;
+background:#e5e7eb;
+}
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+}
+.red{background:#ef4444;}
+.yellow{background:#f59e0b;}
+.green{background:#22c55e;}
+#address{
+flex:1;
+padding:7px;
+border:none;
+border-radius:5px;
+}
+#status{
+padding:10px;
+background:#eef4ff;
+font-weight:bold;
+}
+iframe{
+width:100%;
+height:500px;
+border:none;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h1>GitHub Repo → GitHub Pages</h1>
+
+<input id="repo" placeholder="https://github.com/username/repository">
+
+<div class="buttons">
+<button onclick="convert()">Convert</button>
+<button onclick="copyURL()">Copy</button>
+<button onclick="openSite()">Open</button>
+</div>
+
+<div id="result"></div>
+
+<div class="browser" id="browser">
+
+<div class="topbar">
+
+<div class="dot red"></div>
+<div class="dot yellow"></div>
+<div class="dot green"></div>
+
+<input id="address" readonly>
+
+<button onclick="reloadFrame()">⟳</button>
+
+</div>
+
+<div id="status">
+Menunggu...
+</div>
+
+<iframe id="frame"></iframe>
+
+</div>
+
+</div>
+
+<script>
+
+let pagesURL="";
+
+function convert(){
+
+const url=document.getElementById("repo").value.trim();
+
+const m=url.match(/github\.com\/([^\/]+)\/([^\/?#]+)/i);
+
+if(!m){
+
+alert("URL Repository tidak valid");
+
+return;
+
+}
+
+const user=m[1];
+
+const repo=m[2].replace(/\.git$/i,"");
+
+pagesURL=`https://${user}.github.io/${repo}/`;
+
+document.getElementById("result").innerHTML=
+`<a href="${pagesURL}" target="_blank">${pagesURL}</a>`;
+
+document.getElementById("browser").style.display="block";
+
+document.getElementById("address").value=pagesURL;
+
+preview();
+
+}
+
+function preview(){
+
+const frame=document.getElementById("frame");
+
+const status=document.getElementById("status");
+
+status.innerHTML="🔄 Membuka website...";
+
+let done=false;
+
+frame.src="about:blank";
+
+const timer=setTimeout(()=>{
+
+if(done)return;
+
+status.innerHTML="❌ Timeout (3 detik). Klik Open untuk memastikan website.";
+
+},3000);
+
+frame.onload=function(){
+
+done=true;
+
+clearTimeout(timer);
+
+status.innerHTML="🟢 Preview berhasil dimuat.";
+
+};
+
+frame.src=pagesURL;
+
+}
+
+function reloadFrame(){
+
+preview();
+
+}
+
+function copyURL(){
+
+if(!pagesURL){
+
+alert("Belum ada hasil");
+
+return;
+
+}
+
+navigator.clipboard.writeText(pagesURL);
+
+alert("URL berhasil dicopy");
+
+}
+
+function openSite(){
+
+if(!pagesURL){
+
+alert("Belum ada hasil");
+
+return;
+
+}
+
+window.open(pagesURL,"_blank");
+
+}
+
+document.getElementById("repo").addEventListener("keydown",e=>{
+
+if(e.key==="Enter")convert();
+
+});
+
+</script>
+
+</body>
+</html>
