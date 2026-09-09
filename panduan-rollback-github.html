@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panduan Rollback GitHub — Kembali ke Versi Sebelumnya</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #121a2b;
+      --line: #243047;
+      --text: #e8eef8;
+      --muted: #9aa8bd;
+      --accent: #5ec8ff;
+      --ok: #3dd68c;
+      --warn: #f5c542;
+      --danger: #ff6b7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { font-size: 1.75rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; margin: 36px 0 12px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+    h3 { font-size: 1.05rem; margin: 22px 0 8px; }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+    .lead { font-size: 1.05rem; color: var(--muted); margin-bottom: 24px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 14px 0;
+    }
+    .ok { border-left: 4px solid var(--ok); }
+    .warn { border-left: 4px solid var(--warn); }
+    .danger { border-left: 4px solid var(--danger); }
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-right: 6px;
+    }
+    .tag-web { background: #1a3a5c; color: var(--accent); }
+    .tag-bash { background: #1e3d2f; color: var(--ok); }
+    .tag-hati { background: #4a2a2a; color: var(--danger); }
+    pre {
+      background: #0a101a;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #d7e6ff;
+    }
+    code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.9em;
+      background: #1a2333;
+      padding: 1px 6px;
+      border-radius: 5px;
+    }
+    pre code { background: none; padding: 0; }
+    ol.steps { padding-left: 1.25rem; }
+    ol.steps li { margin: 8px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th { background: #182338; color: var(--accent); }
+    a { color: var(--accent); }
+    footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .toc a { text-decoration: none; }
+    .toc li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Panduan Rollback GitHub</h1>
+    <p class="lead">Cara mengembalikan website/repo ke versi sebelum revisi, jika setelah upload hasilnya error atau tidak sesuai. Cocok untuk guru dan santriwati yang memakai GitHub Pages.</p>
+
+    <div class="card ok">
+      <strong>Inti pelajaran:</strong> GitHub menyimpan <em>sejarah commit</em>. Selama pernah di-commit dan di-push, versi lama masih bisa dikembalikan — lewat website atau Git Bash.
+    </div>
+
+    <h2>Daftar isi</h2>
+    <ol class="toc">
+      <li><a href="#kapan">Kapan perlu rollback?</a></li>
+      <li><a href="#web">Cara A — Klak-klik di website GitHub (paling mudah)</a></li>
+      <li><a href="#bash">Cara B — Git Bash (lebih lengkap)</a></li>
+      <li><a href="#pilih">Kapan pakai Revert vs Reset?</a></li>
+      <li><a href="#cek">Cek setelah rollback</a></li>
+      <li><a href="#latihan">Latihan singkat untuk santriwati</a></li>
+    </ol>
+
+    <h2 id="kapan">1. Kapan perlu rollback?</h2>
+    <ul>
+      <li>Website error / blank setelah upload revisi</li>
+      <li>Fitur penting rusak (login, ujian, hapus data, dll.)</li>
+      <li>Sengaja ingin membandingkan versi lama vs baru</li>
+    </ul>
+    <div class="card warn">
+      <span class="tag tag-hati">Ingat</span>
+      Rollback mengembalikan <strong>kode di GitHub</strong>. Data di Supabase / Google Sheet (hasil ujian siswa) tidak otomatis ikut mundur — itu database terpisah.
+    </div>
+
+    <h2 id="web">2. Cara A — Di website GitHub (tanpa Git Bash)</h2>
+
+    <h3>A1. Lihat sejarah commit</h3>
+    <ol class="steps">
+      <li>Buka repo, contoh: <code>https://github.com/ayahelang/cbt</code></li>
+      <li>Klik jumlah commit di atas daftar file (tulisan seperti <strong>XX commits</strong>)</li>
+      <li>Muncul daftar commit dari terbaru ke lama</li>
+      <li>Baca pesan commit — pilih yang <em>sebelum</em> revisi bermasalah</li>
+    </ol>
+
+    <h3>A2. Lihat isi repo di commit lama (hanya melihat)</h3>
+    <ol class="steps">
+      <li>Di daftar commit, klik hash/kode commit (misalnya <code>a1b2c3d</code>)</li>
+      <li>Klik tombol <strong>Browse files</strong></li>
+      <li>Kamu melihat seluruh folder seperti di masa itu (read-only)</li>
+    </ol>
+
+    <h3>A3. Kembalikan satu file saja</h3>
+    <ol class="steps">
+      <li>Browse files di commit lama</li>
+      <li>Buka file yang ingin dikembalikan (misalnya <code>app.js</code>)</li>
+      <li>Klik tombol <strong>Raw</strong> → salin isinya, atau unduh</li>
+      <li>Kembali ke branch utama (Code → branch <code>main</code>)</li>
+      <li>Buka file yang sama → ikon pensil (Edit) → tempel isi lama → <strong>Commit changes</strong></li>
+    </ol>
+
+    <h3>A4. Revert commit terakhir (disarankan untuk pemula)</h3>
+    <p class="muted">Revert = membuat commit baru yang membatalkan perubahan commit tertentu. Sejarah tetap aman.</p>
+    <ol class="steps">
+      <li>Buka <strong>XX commits</strong></li>
+      <li>Buka commit yang ingin dibatalkan</li>
+      <li>Jika tersedia, gunakan menu <strong>Revert</strong> (pada beberapa tampilan ada di menu “…”)</li>
+      <li>Atau: pakai Git Bash (lihat bagian B2) — lebih andal</li>
+    </ol>
+
+    <div class="card warn">
+      <span class="tag tag-web">Web</span>
+      Di UI GitHub, “Revert” tidak selalu muncul untuk semua commit (terutama merge). Kalau tidak ada, pakai Git Bash.
+    </div>
+
+    <h2 id="bash">3. Cara B — Git Bash</h2>
+    <p>Ganti <code>ayahelang/cbt</code> jika nama repo berbeda.</p>
+
+    <h3>B0. Masuk ke folder repo</h3>
+<pre><code>cd ~
+git clone https://github.com/ayahelang/cbt.git
+cd cbt
+# jika sudah pernah clone:
+# cd ~/cbt && git pull</code></pre>
+
+    <h3>B1. Lihat sejarah commit</h3>
+<pre><code>git log --oneline -15</code></pre>
+    <p class="muted">Contoh output:</p>
+<pre><code>f9a1b20 replace CBT fixed build
+c33de10 hapus file sampah
+a91e002 update retake supabase
+7c2bb10 versi stabil sebelum revisi   ← misalnya ini yang ingin dikembalikan</code></pre>
+    <p>Salin hash commit target (misalnya <code>7c2bb10</code>).</p>
+
+    <h3 id="revert">B2. Cara aman: <code>git revert</code> (disarankan)</h3>
+    <p>Membatalkan commit terbaru tanpa menghapus sejarah. Cocok jika sudah di-push dan dipakai bersama.</p>
+<pre><code># batalkan 1 commit terbaru
+git revert HEAD --no-edit
+git push origin main
+
+# atau batalkan commit tertentu
+git revert a91e002 --no-edit
+git push origin main</code></pre>
+    <div class="card ok">
+      <span class="tag tag-bash">Aman</span>
+      Revert tidak “menghapus masa lalu”. Teman/guru lain tetap bisa <code>git pull</code> tanpa konflik aneh.
+    </div>
+
+    <h3>B3. Kembalikan seluruh project ke commit lama (reset)</h3>
+    <div class="card danger">
+      <span class="tag tag-hati">Hati-hati</span>
+      <code>reset --hard</code> + <code>push --force</code> menimpa sejarah remote. Hanya lakukan jika kamu yakin, dan idealnya repo tidak sedang diedit orang lain.
+    </div>
+<pre><code># 1) pindah ke kondisi commit lama (lokal)
+git reset --hard 7c2bb10
+
+# 2) kirim ke GitHub (MENIMPA branch remote)
+git push origin main --force</code></pre>
+    <p class="muted">Ganti <code>main</code> menjadi <code>master</code> jika branch default repo kamu <code>master</code>.</p>
+
+    <h3>B4. Hanya coba versi lama di laptop (tanpa mengubah GitHub)</h3>
+<pre><code>git log --oneline -10
+git checkout 7c2bb10
+# lihat-lihat / uji lokal...
+# kembali ke branch utama:
+git checkout main</code></pre>
+
+    <h3>B5. Pulihkan satu file dari commit lama</h3>
+<pre><code>git checkout 7c2bb10 -- app.js
+git add app.js
+git commit -m "restore app.js dari versi stabil"
+git push origin main</code></pre>
+
+    <h2 id="pilih">4. Revert vs Reset — pilih yang mana?</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metode</th>
+          <th>Efek</th>
+          <th>Kapan dipakai</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Revert</strong></td>
+          <td>Commit baru yang membatalkan perubahan</td>
+          <td>Default / belajar / kerja tim — <strong>paling disarankan</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Reset + force push</strong></td>
+          <td>Branch seolah “loncat” ke masa lalu</td>
+          <td>Repo sendiri, yakin ingin buang commit buruk</td>
+        </tr>
+        <tr>
+          <td><strong>Checkout file</strong></td>
+          <td>Hanya file tertentu yang dikembalikan</td>
+          <td>Satu file error, yang lain sudah benar</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="cek">5. Setelah rollback — cek ini</h2>
+    <ol class="steps">
+      <li>Buka website GitHub Pages (hard refresh: <code>Ctrl + F5</code>)</li>
+      <li>Tunggu 1–2 menit (kadang Pages belum selesai build)</li>
+      <li>Uji fitur kritis: login, mulai ujian, admin muat data</li>
+      <li>Di repo: pastikan commit terbaru sesuai yang kamu harapkan (<code>git log -1</code>)</li>
+    </ol>
+
+    <h2 id="latihan">6. Latihan singkat untuk santriwati</h2>
+    <div class="card">
+      <ol class="steps">
+        <li>Buat repo latihan (bukan repo ujian produksi).</li>
+        <li>Commit file <code>index.html</code> berisi teks “Versi 1”.</li>
+        <li>Ubah menjadi “Versi 2”, commit lagi, push.</li>
+        <li>Pakai <code>git log --oneline</code> dan <code>git revert HEAD</code>.</li>
+        <li>Refresh GitHub Pages — harus kembali ke “Versi 1” (atau setara setelah revert).</li>
+      </ol>
+      <p class="muted">Tujuan: memahami bahwa kesalahan upload bisa diperbaiki tanpa panik.</p>
+    </div>
+
+    <div class="card ok">
+      <strong>Pesan penutup:</strong> Commit sering + pesan commit yang jelas = “tombol undo” yang andal. Jangan takut salah — takutlah tidak punya sejarah commit.
+    </div>
+
+    <footer>
+      Silverhawk Learning · Panduan Rollback GitHub · Untuk pembelajaran SMM / Web Design<br>
+      Contoh repo: <code>github.com/ayahelang/cbt</code> · Boleh disalin ke materi kelas
+    </footer>
+  </div>
+</body>
+</html>
