@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.2.0"
+VER="0.2.1"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-}"
 GH_USER="${GITHUB_USER:-}"
@@ -117,10 +117,12 @@ token_help(){
   echo "    3. Pilih ${C_BOLD}Fine-grained tokens${C_RESET} → Generate new token."
   echo "    4. Beri nama, tentukan masa berlaku, dan pilih repository yang boleh diakses."
   echo "    5. Untuk Silverhawk AutoCLI, aktifkan minimal:"
-  echo "       • Repository permissions → Contents: Read and write"
+  echo "       • Repository access → pilih repository yang ingin dikelola"
   echo "       • Repository permissions → Metadata: Read-only"
-  echo "       • Administration: Read and write   (rename/delete/create repo & sebagian Pages)"
+  echo "       • Repository permissions → Contents: Read and write"
+  echo "       • Administration: Read and write   (rename/delete repo; fitur tertentu)"
   echo "       • Pages: Read and write             (fitur GitHub Pages)"
+  echo "       • Untuk membuat repository baru: Account permissions → Administration: Read and write"
   echo "    6. Generate token, lalu COPY token saat ditampilkan."
   echo
   msg_warn "GitHub biasanya hanya menampilkan nilai token lengkap sekali. Jangan kirim token kepada orang lain."
@@ -175,12 +177,63 @@ choose_repo(){
   [ -n "$TOKEN" ] || { msg_err "Silakan login dahulu."; pause; return; }
   echo "    ${C_BOLD}DAFTAR REPOSITORY${C_RESET}"
   echo "    Mengambil daftar repo..."
-  local all="$TMP_ROOT/repos.json"
-  api GET "/user/repos?per_page=100&sort=updated&direction=desc" >"$all" 2>/dev/null || { msg_err "Gagal mengambil repository. Pastikan token punya akses Metadata."; pause; return; }
+  local all="$TMP_ROOT/repos.json" status body
+  # GitHub recommends GET /user/repos for the authenticated user. It supports
+  # fine-grained PATs when Repository Metadata is Read-only.
+  status=$(curl -sS -o "$all" -w '%{http_code}' \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "$API/user/repos?per_page=100&sort=updated&direction=desc") || status="000"
+  if [ "$status" != "200" ]; then
+    echo
+    msg_err "GitHub mengembalikan HTTP $status saat mengambil daftar repository."
+    if command -v jq >/dev/null 2>&1; then
+      body=$(jq -r '.message // empty' "$all" 2>/dev/null)
+      [ -n "$body" ] && echo "    Pesan GitHub: $body"
+    fi
+    echo
+    echo "    Periksa Fine-grained token:"
+    echo "      • Resource owner = akun yang benar"
+    echo "      • Repository access mencakup repository yang ingin dikelola"
+    echo "      • Repository permissions → Metadata = Read-only"
+    echo "    Jika token baru saja dibuat/diubah, coba login lagi dengan token tersebut."
+    pause; return
+  fi
   REPO_LINES=()
   if command -v jq >/dev/null 2>&1; then mapfile -t REPO_LINES < <(jq -r '.[] | [.name,.private,.default_branch,.html_url] | @tsv' "$all");
   else mapfile -t REPO_LINES < <(grep -o '"name":"[^"]*"' "$all" | sed 's/"name":"//;s/"$//' | awk '{print $0"\t?\t?\t"}'); fi
-  if [ "${#REPO_LINES[@]}" -eq 0 ]; then echo "    Tidak ada repository yang dapat diakses token ini."; pause; return; fi
+  if [ "${#REPO_LINES[@]}" -eq 0 ]; then
+    echo "    Tidak ada repository yang dikembalikan oleh token ini."
+    echo
+    msg_warn "Kemungkinan paling umum: token Fine-grained belum diberi akses ke repository tersebut."
+    echo "    Buka GitHub → Settings → Developer settings → Personal access tokens"
+    echo "    → Fine-grained tokens → pilih token → pastikan Repository access mencakup repo Anda."
+    echo
+    echo "    Anda juga dapat memilih [C] untuk mencoba repository berdasarkan nama."
+    read -r -p "    C = coba nama repo / Enter = kembali: " empty_choice
+    if [[ "$empty_choice" =~ ^[Cc]$ ]]; then
+      echo
+      read -r -p "    Nama repository (contoh: cbt): " manual_repo
+      if [ -n "$manual_repo" ]; then
+        local one
+        one=$(api GET "/repos/$GH_USER/$manual_repo" 2>/dev/null) || one=""
+        if [ -n "$one" ] && command -v jq >/dev/null 2>&1 && [ "$(jq -r '.name // empty' <<< "$one")" = "$manual_repo" ]; then
+          REPO_NAME=$(jq -r '.name' <<< "$one")
+          BRANCH=$(jq -r '.default_branch // "main"' <<< "$one")
+          REPO_OWNER="$GH_USER"; CURRENT_PATH=""
+          msg_ok "Repository aktif: $REPO_OWNER/$REPO_NAME [$BRANCH]"
+          pause; return
+        fi
+        msg_err "Repository tidak dapat diakses dengan token ini."
+        echo "    Pastikan repo tersebut termasuk dalam Repository access token."
+        pause
+      fi
+    else
+      pause
+    fi
+    return
+  fi
   local i=1 line name priv branch url
   for line in "${REPO_LINES[@]}"; do
     IFS=$'\t' read -r name priv branch url <<< "$line"
