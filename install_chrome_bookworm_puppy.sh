@@ -146,7 +146,7 @@ setup_google_repo(){
     info "Setting up Google repo for auto updates..."
     run_as_root mkdir -p /etc/apt/keyrings
     run_as_root sh -c 'wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/keyrings/google-linux.gpg'
-    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-linux.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | run_as_root tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-linux.gpg] https://dl.google.com/linux/chrome/deb/ stable main" | run_as_root tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
     run_as_root apt update -y || true
   fi
 }

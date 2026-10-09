@@ -1,9 +1,8 @@
 #!/bin/bash
 
 APP_NAME="Repo Manager v7 by Ted"
-APP_NAME="Repo Manager v7a"
 APP_AUTHOR="by Ted"
-APP_BUILD="2026.01"
+APP_BUILD="2026.10"
 
 # Warna ANSI
 RED='\033[0;31m'
@@ -12,6 +11,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
 CYAN='\033[1;36m'
 NC='\033[0m' # reset
+
+# Cek dependency wajib
+if ! command -v gh >/dev/null 2>&1; then
+    echo -e "\033[0;31m❌ GitHub CLI (gh) belum terpasang.\033[0m"
+    echo "Install dulu dengan:"
+    echo "  sh <(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)"
+    exit 1
+fi
+if ! command -v curl >/dev/null 2>&1; then
+    echo -e "\033[0;31m❌ curl belum terpasang.\033[0m"
+    exit 1
+fi
+if ! command -v git >/dev/null 2>&1; then
+    echo -e "\033[0;31m❌ git belum terpasang.\033[0m"
+    exit 1
+fi
 
 pause() {
     echo
@@ -45,7 +60,12 @@ function change_workdir() {
 
 function pilih_akun() {
     echo
-    accounts=($(gh auth status 2>/dev/null | grep "Logged in to github.com account" | sed -E 's/.*account ([^ ]+).*/\1/'))
+    accounts=($(gh auth status 2>/dev/null | sed -nE 's/.*Logged in to github.com account ([^ ]+).*/\1/p; s/.*account ([^ ]+) \(keyring\).*/\1/p' | sort -u))
+    if [ ${#accounts[@]} -eq 0 ]; then
+        # fallback modern format / single user
+        single=$(gh api user --jq .login 2>/dev/null || true)
+        [ -n "$single" ] && accounts=("$single")
+    fi
     if [ ${#accounts[@]} -eq 0 ]; then
         echo -e "${RED}❌ Tidak ada akun login. Silakan login dulu (menu 2).${NC}"
         pause
@@ -137,15 +157,33 @@ function upload_folder() {
     
     echo
     echo -e "🚀 Upload folder ${YELLOW}'$folder'${NC} ke repo ${GREEN}'$repo'...${NC}"
-    
-    git init
+    echo -e "${RED}PERINGATAN: Ini akan force-push dan menimpa isi repo remote.${NC}"
+    read -p "Ketik 'YA' untuk lanjut: " conf
+    if [ "$conf" != "YA" ]; then
+        echo "Dibatalkan."
+        cd ..
+        pause
+        return
+    fi
+
+    # Inisialisasi git hanya jika belum repo
+    if [ ! -d .git ]; then
+        git init
+        git branch -M main
+    fi
     git add .
-    git commit -m "Upload via $APP_NAME"
-    git branch -M main
-    git remote remove origin 2>/dev/null
-    git remote add origin "https://github.com/$(gh api user --jq .login)/$repo.git"
+    # commit hanya jika ada perubahan
+    if git diff --cached --quiet 2>/dev/null; then
+        echo -e "${YELLOW}Tidak ada perubahan untuk di-commit.${NC}"
+    else
+        git commit -m "Upload via $APP_NAME" || true
+    fi
+    git branch -M main 2>/dev/null || true
+    git remote remove origin 2>/dev/null || true
+    active=$(gh api user --jq .login)
+    git remote add origin "https://github.com/$active/$repo.git"
     git push -u origin main --force
-    
+
     cd ..
     pause
 }
@@ -180,7 +218,12 @@ create_new_repo() {
   echo "--------------------------------------------"
 
   # Ambil daftar akun yang login (sama seperti di pilih_akun)
-  accounts=($(gh auth status 2>/dev/null | grep "Logged in to github.com account" | sed -E 's/.*account ([^ ]+).*/\1/'))
+  accounts=($(gh auth status 2>/dev/null | sed -nE 's/.*Logged in to github.com account ([^ ]+).*/\1/p; s/.*account ([^ ]+) \(keyring\).*/\1/p' | sort -u))
+    if [ ${#accounts[@]} -eq 0 ]; then
+        # fallback modern format / single user
+        single=$(gh api user --jq .login 2>/dev/null || true)
+        [ -n "$single" ] && accounts=("$single")
+    fi
 
   # fallback: kalau parsing gagal, gunakan gh api user (single account)
   if [ ${#accounts[@]} -eq 0 ]; then
@@ -257,7 +300,7 @@ create_new_repo() {
   echo
   echo -e "${YELLOW}⚡ Membuat repo $account/$new_repo ...${NC}"
   # Buat repo dan clone ke lokal
-  if gh repo create "$account/$new_repo" --public --confirm --clone >/dev/null 2>&1; then
+  if gh repo create "$account/$new_repo" --public --clone >/dev/null 2>&1; then
     # kalau clone sukses, masuk ke folder dan buat README
     if [ -d "$new_repo" ]; then
       cd "$new_repo" || return
@@ -396,7 +439,7 @@ manage_scopes() {
   fi
 
   # Ambil scopes via header response
-  SCOPES=$(curl -s -I -H "Authorization: token $TOKEN" https://api.github.com/user | grep "X-OAuth-Scopes:" | sed 's/X-OAuth-Scopes: //')
+  SCOPES=$(curl -s -I -H "Authorization: Bearer $TOKEN" https://api.github.com/user | grep "X-OAuth-Scopes:" | sed 's/X-OAuth-Scopes: //')
   echo "✅ Scopes aktif saat ini: ${SCOPES:-<tidak ada>}"
   echo
 
@@ -514,7 +557,7 @@ function manage_collaborators() {
                 payload="{\"permission\":\"$perm\"}"
                 resp_file=$(mktemp)
                 http_code=$(curl -s -o "$resp_file" -w "%{http_code}" -X PUT \
-                  -H "Authorization: token $TOKEN" \
+                  -H "Authorization: Bearer $TOKEN" \
                   -H "Accept: application/vnd.github+json" \
                   -d "$payload" \
                   "https://api.github.com/repos/$active_user/$repo_name/collaborators/$collab_user")
@@ -562,7 +605,7 @@ function manage_collaborators() {
 
                     resp_file=$(mktemp)
                     http_code=$(curl -s -o "$resp_file" -w "%{http_code}" -X DELETE \
-                    -H "Authorization: token $TOKEN" \
+                    -H "Authorization: Bearer $TOKEN" \
                     -H "Accept: application/vnd.github+json" \
                     "https://api.github.com/repos/$active_user/$repo_name/collaborators/$collab_user")
 
