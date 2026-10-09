@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.0"
+VER="0.4.1"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -499,6 +499,26 @@ upload_one(){
     -H "Content-Type: application/json" \
     "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")" --data-binary @"$payload" >/dev/null
 }
+# Normalisasi path lokal (Windows Git Bash, spasi, ~, kutip)
+normalize_local_path(){
+  local p="$1"
+  # hapus kutip yang ikut ter-copy
+  p="${p%\"}"; p="${p#\"}"; p="${p%\'}"; p="${p#\'}"
+  p="${p%\"}"; p="${p#\"}"
+  # trim spasi ujung
+  p=$(printf '%s' "$p" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  # backslash → slash (Windows)
+  p=$(printf '%s' "$p" | sed 's|\\|/|g')
+  # C:/Users/... → /c/Users/... (Git Bash)
+  if [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]]; then
+    local drive="${BASH_REMATCH[1],,}"
+    p="/${drive}/${BASH_REMATCH[2]}"
+  fi
+  # expand ~
+  [[ "$p" == ~* ]] && p="${p/#\~/$HOME}"
+  printf '%s' "$p"
+}
+
 upload_files(){
   [ -n "$REPO_NAME" ] || { msg_err "Pilih repository dahulu."; pause; return; }
   title
@@ -508,8 +528,25 @@ upload_files(){
   echo "    Pilih folder lokal yang berisi file yang ingin diupload."
   echo "    Semua file di dalamnya akan diupload secara rekursif dan struktur subfolder dipertahankan."
   echo
-  localdir=$(ask "    Path folder lokal (contoh /workspaces/repo atau ~/project): ")
-  [ -d "$localdir" ] || { msg_err "Folder lokal tidak ditemukan."; pause; return; }
+  echo "    ${C_DIM}Contoh path:${C_RESET}"
+  echo "      Windows Git Bash : /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
+  echo "      atau             : C:/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
+  echo "      Codespaces      : /workspaces/nama-repo/folder"
+  echo
+  localdir=$(ask "    Path folder lokal: ")
+  localdir=$(normalize_local_path "$localdir")
+  echo "    ${C_DIM}Path diproses: $localdir${C_RESET}"
+  if [ ! -d "$localdir" ]; then
+    msg_err "Folder lokal tidak ditemukan."
+    echo "    Tips Windows Git Bash:"
+    echo "      1) Buka folder di File Explorer"
+    echo "      2) Klik address bar, salin path"
+    echo "      3) Ganti C:\\ menjadi /c/  dan  \\ menjadi /"
+    echo "      Contoh: C:\\Users\\JW\\Downloads\\darulistiqomah"
+    echo "           → /c/Users/JW/Downloads/darulistiqomah"
+    pause
+    return
+  fi
   localdir=$(cd "$localdir" 2>/dev/null && pwd) || { msg_err "Tidak dapat membuka folder lokal."; pause; return; }
   mapfile -t LOCAL_FILES < <(find "$localdir" -type f -print 2>/dev/null)
   [ "${#LOCAL_FILES[@]}" -gt 0 ] || { msg_warn "Tidak ada file di folder tersebut."; pause; return; }

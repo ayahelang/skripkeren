@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================
 #  Universal Git Restore Tool
-#  Bisa dipakai di repo mana pun
 #  curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh | bash
 # ==============================================
 
 set -e
 
-# Warna
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -15,18 +13,20 @@ CYAN='\033[0;36m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Semua input interaktif harus dari terminal asli
-# (penting saat dijalankan via: curl ... | bash)
 TTY=/dev/tty
-if [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
+if [ ! -c "$TTY" ] || [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
   TTY=/dev/stdin
 fi
 
 ask() {
-  # $1 = prompt
   local _ans
   printf "%s" "$1" >"$TTY"
-  IFS= read -r _ans <"$TTY" || true
+  if ! IFS= read -r _ans <"$TTY"; then
+    # EOF / Ctrl+D
+    printf "\n" >"$TTY"
+    printf "%s" "0"
+    return
+  fi
   printf "%s" "$_ans"
 }
 
@@ -38,21 +38,18 @@ echo "║     Restore repo ke commit (snapshot) sebelumnya   ║"
 echo "╚════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# ---------- Cek apakah di dalam git repo ----------
 if [ ! -d ".git" ]; then
   echo -e "${RED}Error: Folder ini bukan repository Git.${NC}"
   echo "Jalankan script ini dari dalam folder repository."
   exit 1
 fi
 
-# ---------- Info repo saat ini ----------
 REPO_URL=$(git remote get-url origin 2>/dev/null || echo "Tidak ada remote")
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
 CURRENT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
 CURRENT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null)
 CURRENT_DATE=$(git log -1 --pretty=format:"%ad" --date=short 2>/dev/null)
 
-# Coba deteksi username & repo name
 if [[ "$REPO_URL" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
   OWNER="${BASH_REMATCH[1]}"
   REPO_NAME="${BASH_REMATCH[2]}"
@@ -72,11 +69,9 @@ echo -e "  Remote URL     : $REPO_URL"
 echo "────────────────────────────────────────────────────"
 echo ""
 
-# ---------- Ambil daftar commit ----------
 echo -e "${CYAN}Mengambil daftar 25 commit terakhir...${NC}"
 echo ""
 
-# Pastikan ada newline di akhir supaya mapfile tidak drop baris terakhir
 COMMITS=()
 while IFS= read -r line || [ -n "$line" ]; do
   [ -n "$line" ] && COMMITS+=("$line")
@@ -87,6 +82,8 @@ if [ ${#COMMITS[@]} -eq 0 ]; then
   exit 1
 fi
 
+MAX=${#COMMITS[@]}
+
 echo -e "${GREEN}Daftar Commit (Snapshot) yang tersedia:${NC}"
 echo "────────────────────────────────────────────────────────────────────────"
 printf "  %2s  %-10s  %-12s  %-18s  %s\n" "No" "Tanggal" "Hash" "Author" "Pesan"
@@ -95,7 +92,6 @@ echo "────────────────────────�
 for i in "${!COMMITS[@]}"; do
   IFS='|' read -r HASH DATE AUTHOR MSG <<< "${COMMITS[$i]}"
   NUM=$((i+1))
-
   if [ "$HASH" = "$CURRENT_COMMIT" ]; then
     printf "  %2d. %-10s  %-12s  %-18s  %s ${YELLOW}← SEKARANG${NC}\n" "$NUM" "$DATE" "$HASH" "$AUTHOR" "$MSG"
   else
@@ -104,32 +100,36 @@ for i in "${!COMMITS[@]}"; do
 done
 
 echo "────────────────────────────────────────────────────────────────────────"
-echo "   0. Batal / Keluar"
+echo -e "   ${CYAN}0${NC} atau ${CYAN}q${NC}  =  Batal / Keluar"
+echo -e "   Pilih nomor ${GREEN}1${NC}–${GREEN}${MAX}${NC}"
 echo ""
 
-# ---------- Pilih nomor ----------
+TRIES=0
 while true; do
   CHOICE=$(ask "Pilih nomor commit yang ingin dikembalikan: ")
-  # trim spasi
-  CHOICE=$(echo "$CHOICE" | tr -d '[:space:]')
+  # trim spasi + lowercase untuk q
+  CHOICE=$(printf '%s' "$CHOICE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  if [ -z "$CHOICE" ]; then
-    echo -e "${RED}Nomor kosong. Coba lagi.${NC}"
-    continue
-  fi
-
-  if [ "$CHOICE" = "0" ]; then
-    echo "Dibatalkan."
-    exit 0
-  fi
+  # Keluar: kosong, 0, q, Q, exit, batal
+  case "$CHOICE" in
+    ""|0|q|Q|exit|EXIT|batal|Batal)
+      echo ""
+      echo -e "${CYAN}Dibatalkan. Tidak ada perubahan pada repo.${NC}"
+      exit 0
+      ;;
+  esac
 
   if ! [[ "$CHOICE" =~ ^[0-9]+$ ]]; then
-    echo -e "${RED}Nomor tidak valid (bukan angka). Coba lagi.${NC}"
+    echo -e "${RED}Input tidak valid.${NC} Ketik nomor 1–${MAX}, atau 0 / q untuk keluar."
+    TRIES=$((TRIES+1))
+    [ "$TRIES" -ge 5 ] && { echo -e "${YELLOW}Terlalu banyak percobaan. Keluar.${NC}"; exit 0; }
     continue
   fi
 
-  if [ "$CHOICE" -lt 1 ] || [ "$CHOICE" -gt ${#COMMITS[@]} ]; then
-    echo -e "${RED}Nomor di luar jangkauan (1-${#COMMITS[@]}). Coba lagi.${NC}"
+  if [ "$CHOICE" -lt 1 ] || [ "$CHOICE" -gt "$MAX" ]; then
+    echo -e "${RED}Nomor di luar jangkauan (1–${MAX}).${NC} Atau ketik ${CYAN}0${NC} / ${CYAN}q${NC} untuk keluar."
+    TRIES=$((TRIES+1))
+    [ "$TRIES" -ge 5 ] && { echo -e "${YELLOW}Terlalu banyak percobaan. Keluar.${NC}"; exit 0; }
     continue
   fi
 
@@ -148,27 +148,25 @@ echo "  Pesan    : $SELECTED_MSG"
 echo ""
 echo -e "${RED}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${RED}║  PERINGATAN BESAR                                  ║${NC}"
-echo -e "${RED}║  Script ini akan menjalankan:                      ║${NC}"
 echo -e "${RED}║  git reset --hard + git push --force               ║${NC}"
 echo -e "${RED}║  Semua commit setelah titik ini akan HILANG.       ║${NC}"
 echo -e "${RED}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-CONFIRM=$(ask "Ketik 'YA' (huruf besar semua) untuk melanjutkan: ")
-CONFIRM=$(echo "$CONFIRM" | tr -d '[:space:]')
+CONFIRM=$(ask "Ketik 'YA' untuk lanjut, atau apa saja untuk batal: ")
+CONFIRM=$(printf '%s' "$CONFIRM" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 if [ "$CONFIRM" != "YA" ]; then
-  echo "Dibatalkan."
+  echo ""
+  echo -e "${CYAN}Dibatalkan. Tidak ada perubahan pada repo.${NC}"
   exit 0
 fi
 
 echo ""
 echo -e "${CYAN}Melakukan restore...${NC}"
 
-# Reset
 git reset --hard "$SELECTED_HASH"
 
-# Force push
 echo -e "${CYAN}Force push ke origin ${CURRENT_BRANCH} ...${NC}"
 git push origin "$CURRENT_BRANCH" --force
 
