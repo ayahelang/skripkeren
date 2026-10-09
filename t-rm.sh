@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.4"
+VER="0.4.5"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -278,37 +278,62 @@ login(){
   echo "    Lingkungan terdeteksi: ${C_CYAN}${ENV_HINT:-$ENV_KIND}${C_RESET}"
   echo
   echo "    Script memakai GitHub API. Username+password saja ${C_BOLD}tidak cukup${C_RESET}"
-  echo "    (kebijakan GitHub sejak 2021). Pilih salah satu cara di bawah."
+  echo "    (kebijakan GitHub sejak 2021)."
   echo
 
-  # Auto try first
-  if auto_login; then
-    pause
-    return
+  # Coba deteksi sesi yang ada (tanpa menutup menu)
+  local had_session=0
+  if [ -n "$TOKEN" ] && [ -n "$GH_USER" ]; then
+    had_session=1
+  elif auto_login; then
+    had_session=1
   fi
-  msg_info "Belum ada sesi valid. Pilih metode login:"
-  echo
+
+  if [ "$had_session" -eq 1 ]; then
+    msg_ok "Sesi aktif: $GH_USER"
+    if [ -n "${CODESPACES:-}" ] || [ -n "${CODESPACE_NAME:-}" ]; then
+      msg_warn "Token Codespaces sering HANYA write ke 1 repo (tempat Codespace dibuka)."
+      echo "    Untuk upload ke repo lain (mis. darulistiqomah), pilih ${C_BOLD}[3] PAT${C_RESET} atau ${C_BOLD}[2] gh auth${C_RESET}."
+    fi
+    echo
+    echo "    ${C_CYAN}[Enter / M]${C_RESET} Pakai sesi ini, kembali ke menu utama"
+  else
+    msg_info "Belum ada sesi valid."
+    echo
+  fi
+
   echo "    ${C_CYAN}[1]${C_RESET} Auto-detect lagi (Codespaces token / gh session)"
   echo "    ${C_CYAN}[2]${C_RESET} Login via GitHub CLI — browser/device code ${C_DIM}(disarankan)${C_RESET}"
-  echo "    ${C_CYAN}[3]${C_RESET} Tempel PAT manual"
+  echo "    ${C_CYAN}[3]${C_RESET} Tempel PAT manual ${C_DIM}(untuk write ke banyak repo)${C_RESET}"
   echo "    ${C_CYAN}[4]${C_RESET} Panduan buat PAT (+ buka browser)"
   echo "    ${C_CYAN}[M]${C_RESET} Menu utama"
   echo
   local start
   start=$(ask "    Pilihan: ")
   case "$start" in
+    ""|[Mm]) return ;;
     1)
-      if auto_login; then pause; return; fi
-      msg_warn "Masih belum ketemu token valid."
-      echo "    Di Codespaces: token bawaan sering terbatas ke 1 repo."
-      echo "    Solusi: pilih [2] atau [3]."
+      TOKEN=""; GH_USER=""
+      if auto_login; then
+        msg_ok "Sesi: $GH_USER"
+        echo "    Jika upload masih 403, pilih [3] PAT yang punya akses repo target."
+      else
+        msg_warn "Tidak ketemu token valid. Coba [2] atau [3]."
+      fi
       pause
       login
       ;;
-    2) login_via_gh || true ;;
-    3) login_manual_pat || true ;;
+    2)
+      TOKEN=""; GH_USER=""
+      login_via_gh || true
+      login
+      ;;
+    3)
+      TOKEN=""; GH_USER=""
+      login_manual_pat || true
+      login
+      ;;
     4) token_help; login ;;
-    [Mm]) return ;;
     *) msg_warn "Pilihan tidak valid."; sleep 1; login ;;
   esac
 }
