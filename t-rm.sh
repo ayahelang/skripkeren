@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.3"
+VER="0.4.4"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -486,19 +486,89 @@ PY
   else return 2; fi
 }
 upload_one(){
-  local local_file="$1" remote="$2" msg="$3" existing_sha="${4:-}" payload="$TMP_ROOT/upload.json"
+  local local_file="$1" remote="$2" msg="$3" existing_sha="${4:-}"
+  local payload="$TMP_ROOT/upload-$$.json" resp="$TMP_ROOT/upload-resp-$$.json" code
   make_upload_json "$local_file" "$remote" "$msg" "$payload" || return 2
-  if [ -n "$existing_sha" ]; then
-    if command -v jq >/dev/null 2>&1; then jq --arg sha "$existing_sha" '.sha=$sha' "$payload" >"$payload.tmp" && mv "$payload.tmp" "$payload";
-    else return 2; fi
+
+  if [ -z "$existing_sha" ]; then
+    local meta
+    meta=$(curl -sS -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")?ref=$(urlenc "$BRANCH")" 2>/dev/null || true)
+    if command -v jq >/dev/null 2>&1; then
+      existing_sha=$(printf '%s' "$meta" | jq -r '.sha // empty' 2>/dev/null)
+    else
+      existing_sha=$(printf '%s' "$meta" | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    fi
   fi
-  curl -fsS -X PUT \
+  if [ -n "$existing_sha" ] && command -v jq >/dev/null 2>&1; then
+    jq --arg sha "$existing_sha" '.sha=$sha' "$payload" >"$payload.tmp" && mv "$payload.tmp" "$payload"
+  fi
+
+  code=$(curl -sS -o "$resp" -w '%{http_code}' -X PUT \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     -H "Content-Type: application/json" \
-    "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")" --data-binary @"$payload" >/dev/null
+    "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")" --data-binary @"$payload" 2>/dev/null || echo "000")
+
+  if [ "$code" = "200" ] || [ "$code" = "201" ]; then
+    rm -f "$payload" "$resp"; return 0
+  fi
+
+  if command -v gh >/dev/null 2>&1; then
+    if gh api -X PUT "repos/$REPO_OWNER/$REPO_NAME/contents/$remote" --input "$payload" >/dev/null 2>&1; then
+      rm -f "$payload" "$resp"; return 0
+    fi
+  fi
+
+  LAST_UPLOAD_CODE="$code"
+  if command -v jq >/dev/null 2>&1; then
+    LAST_UPLOAD_MSG=$(jq -r '.message // empty' "$resp" 2>/dev/null)
+  else
+    LAST_UPLOAD_MSG=$(sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$resp" | head -1)
+  fi
+  rm -f "$payload" "$resp"
+  return 1
 }
+
+check_write_access(){
+  local code
+  code=$(curl -sS -o "$TMP_ROOT/perm.json" -w '%{http_code}' \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "$API/repos/$REPO_OWNER/$REPO_NAME" 2>/dev/null || echo "000")
+  if [ "$code" != "200" ]; then
+    msg_err "Tidak bisa akses repo $REPO_OWNER/$REPO_NAME (HTTP $code)."
+    return 1
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    local can_push
+    can_push=$(jq -r '.permissions.push // false' "$TMP_ROOT/perm.json" 2>/dev/null)
+    local can_admin
+    can_admin=$(jq -r '.permissions.admin // false' "$TMP_ROOT/perm.json" 2>/dev/null)
+    if [ "$can_push" != "true" ] && [ "$can_admin" != "true" ]; then
+      msg_err "Token TIDAK punya izin WRITE ke $REPO_OWNER/$REPO_NAME."
+      echo
+      echo "    ${C_BOLD}Ini penyebab HTTP 403.${C_RESET}"
+      echo "    Token Codespaces bawaan biasanya HANYA boleh write ke repo tempat"
+      echo "    Codespace dibuka (videogallery), bukan ke darulistiqomah."
+      echo
+      echo "    ${C_BOLD}Perbaiki dengan salah satu:${C_RESET}"
+      echo "      1) Menu 1 Login → opsi [3] tempel PAT (Contents: Read and write"
+      echo "         untuk repo darulistiqomah / classic PAT scope repo)"
+      echo "      2) Buka Codespace dari repo darulistiqomah sendiri"
+      echo "      3) Di terminal Codespaces: gh auth login  (lalu login ulang di menu)"
+      echo
+      return 1
+    fi
+  fi
+  msg_ok "Izin write ke $REPO_OWNER/$REPO_NAME terdeteksi."
+  return 0
+}
+
 # --- Path resolver: Windows / WSL / Git Bash / Codespaces ---
 # User boleh input C:\Users\... ; di Codespaces dicari folder yang sama namanya di /workspaces
 resolve_local_dir(){
@@ -643,16 +713,35 @@ upload_files(){
   confirm=$(ask "    Ketik UPLOAD untuk mulai: ")
   [ "$confirm" = "UPLOAD" ] || { echo "    Dibatalkan."; pause; return; }
   echo
+  if ! check_write_access; then
+    pause
+    return
+  fi
+  echo
   local count=0 fail=0 f rel remote
+  LAST_UPLOAD_CODE=""; LAST_UPLOAD_MSG=""
   for f in "${LOCAL_FILES[@]}"; do
     rel="${f#"$localdir"/}"
     remote="${CURRENT_PATH:+$CURRENT_PATH/}$rel"
     remote="${remote#/}"
+    [[ "$rel" == .git/* ]] && continue
     printf "    Upload: %s → /%s ... " "$rel" "$remote"
-    if upload_one "$f" "$remote" "Silverhawk AutoCLI: upload $rel"; then echo "${C_GREEN}OK${C_RESET}"; ((count++)); else echo "${C_RED}GAGAL${C_RESET}"; ((fail++)); fi
+    if upload_one "$f" "$remote" "Silverhawk AutoCLI: upload $rel"; then
+      echo "${C_GREEN}OK${C_RESET}"; ((count++))
+    else
+      echo "${C_RED}GAGAL${C_RESET} (HTTP ${LAST_UPLOAD_CODE:-?}${LAST_UPLOAD_MSG:+: $LAST_UPLOAD_MSG})"
+      ((fail++))
+      if [ "$LAST_UPLOAD_CODE" = "403" ] || [ "$LAST_UPLOAD_CODE" = "401" ]; then
+        echo
+        msg_err "Izin ditolak — sisa upload dihentikan."
+        echo "    Login ulang (menu 1) dengan PAT yang write ke repo $REPO_NAME"
+        break
+      fi
+    fi
   done
   echo; hr
-  msg_ok "Upload selesai: $count berhasil, $fail gagal."
+  if [ "$fail" -eq 0 ]; then msg_ok "Upload selesai: $count berhasil, $fail gagal."
+  else msg_warn "Upload selesai: $count berhasil, $fail gagal."; fi
   pause
 }
 
