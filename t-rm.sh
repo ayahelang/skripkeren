@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.1"
+VER="0.4.2"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -499,24 +499,49 @@ upload_one(){
     -H "Content-Type: application/json" \
     "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")" --data-binary @"$payload" >/dev/null
 }
-# Normalisasi path lokal (Windows Git Bash, spasi, ~, kutip)
-normalize_local_path(){
-  local p="$1"
-  # hapus kutip yang ikut ter-copy
-  p="${p%\"}"; p="${p#\"}"; p="${p%\'}"; p="${p#\'}"
-  p="${p%\"}"; p="${p#\"}"
-  # trim spasi ujung
-  p=$(printf '%s' "$p" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  # backslash → slash (Windows)
+# Kumpulkan kandidat path dari input user (Windows / WSL / Git Bash / Codespaces)
+resolve_local_dir(){
+  local raw="$1" p drive rest cand
+  RESOLVED_DIR=""
+  # trim + hapus kutip
+  p=$(printf '%s' "$raw" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^["'\'']//;s/["'\'']$//')
+  # backslash → slash
   p=$(printf '%s' "$p" | sed 's|\\|/|g')
-  # C:/Users/... → /c/Users/... (Git Bash)
-  if [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]]; then
-    local drive="${BASH_REMATCH[1],,}"
-    p="/${drive}/${BASH_REMATCH[2]}"
-  fi
   # expand ~
   [[ "$p" == ~* ]] && p="${p/#\~/$HOME}"
-  printf '%s' "$p"
+
+  local candidates=()
+  candidates+=("$p")
+
+  # C:/Users/... atau C:/...
+  if [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]]; then
+    drive="${BASH_REMATCH[1],,}"
+    rest="${BASH_REMATCH[2]}"
+    candidates+=("/${drive}/${rest}")           # Git Bash: /c/Users/...
+    candidates+=("/mnt/${drive}/${rest}")       # WSL: /mnt/c/Users/...
+    candidates+=("/cygdrive/${drive}/${rest}")  # Cygwin
+  fi
+  # sudah bentuk /c/Users ...
+  if [[ "$p" =~ ^/([a-zA-Z])/(.*)$ ]]; then
+    drive="${BASH_REMATCH[1],,}"
+    rest="${BASH_REMATCH[2]}"
+    candidates+=("/${drive}/${rest}")
+    candidates+=("/mnt/${drive}/${rest}")
+    candidates+=("/cygdrive/${drive}/${rest}")
+  fi
+
+  # dedupe + cek mana yang ada
+  local seen="|" x
+  for cand in "${candidates[@]}"; do
+    [ -z "$cand" ] && continue
+    [[ "$seen" == *"|$cand|"* ]] && continue
+    seen="${seen}${cand}|"
+    if [ -d "$cand" ]; then
+      RESOLVED_DIR=$(cd "$cand" 2>/dev/null && pwd)
+      [ -n "$RESOLVED_DIR" ] && return 0
+    fi
+  done
+  return 1
 }
 
 upload_files(){
@@ -525,29 +550,46 @@ upload_files(){
   echo "    ${C_BOLD}UPLOAD SEMUA FILE DARI FOLDER LOKAL${C_RESET}"
   echo
   echo "    Folder tujuan GitHub aktif: ${C_YELLOW}/${CURRENT_PATH}${C_RESET}"
-  echo "    Pilih folder lokal yang berisi file yang ingin diupload."
-  echo "    Semua file di dalamnya akan diupload secara rekursif dan struktur subfolder dipertahankan."
+  echo "    Working directory saat ini: ${C_DIM}$(pwd)${C_RESET}"
   echo
-  echo "    ${C_DIM}Contoh path:${C_RESET}"
-  echo "      Windows Git Bash : /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
-  echo "      atau             : C:/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
-  echo "      Codespaces      : /workspaces/nama-repo/folder"
+  # Deteksi lingkungan
+  if [ -n "${CODESPACES:-}" ] || [ -n "${CODESPACE_NAME:-}" ]; then
+    msg_warn "Anda di GitHub Codespaces (cloud)."
+    echo "    Path Windows C:\\Users\\... ${C_BOLD}tidak bisa${C_RESET} diakses dari sini."
+    echo "    Upload dulu file ke Codespaces (drag ke Explorer kiri), lalu pakai path:"
+    echo "      /workspaces/${CODESPACE_NAME:-NAMA}/folder-website"
+    echo "    Atau jalankan script ini di ${C_BOLD}Git Bash Windows${C_RESET} (bukan Codespaces)."
+    echo
+  fi
+  echo "    ${C_DIM}Contoh path yang valid di mesin ini:${C_RESET}"
+  echo "      • Relative : ./darulistiqomah   atau   ."
+  echo "      • Git Bash : /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
+  echo "      • WSL      : /mnt/c/Users/JW/Downloads/..."
+  echo "      • Codespaces: /workspaces/.../darulistiqomah"
   echo
   localdir=$(ask "    Path folder lokal: ")
-  localdir=$(normalize_local_path "$localdir")
-  echo "    ${C_DIM}Path diproses: $localdir${C_RESET}"
-  if [ ! -d "$localdir" ]; then
-    msg_err "Folder lokal tidak ditemukan."
-    echo "    Tips Windows Git Bash:"
-    echo "      1) Buka folder di File Explorer"
-    echo "      2) Klik address bar, salin path"
-    echo "      3) Ganti C:\\ menjadi /c/  dan  \\ menjadi /"
-    echo "      Contoh: C:\\Users\\JW\\Downloads\\darulistiqomah"
-    echo "           → /c/Users/JW/Downloads/darulistiqomah"
+  if ! resolve_local_dir "$localdir"; then
+    msg_err "Folder lokal tidak ditemukan di lingkungan ini."
+    echo "    Input Anda : $localdir"
+    echo
+    echo "    ${C_BOLD}Penyebab paling umum:${C_RESET}"
+    echo "      1) Script jalan di Codespaces, file masih di PC Windows"
+    echo "      2) Nama folder salah / belum di-extract dari zip"
+    echo "      3) Path typo"
+    echo
+    echo "    ${C_BOLD}Solusi cepat:${C_RESET}"
+    echo "      A. Di Git Bash Windows (disarankan untuk file di Downloads):"
+    echo "         cd /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah && pwd"
+    echo "         # jika pwd berhasil, copy path itu ke prompt upload"
+    echo "      B. Di Codespaces: drag folder ke file tree, lalu:"
+    echo "         find /workspaces -maxdepth 3 -type d -name 'darulistiqomah' 2>/dev/null"
+    echo "      C. Path relatif dari folder sekarang ($(pwd)):"
+    echo "         ls -la"
     pause
     return
   fi
-  localdir=$(cd "$localdir" 2>/dev/null && pwd) || { msg_err "Tidak dapat membuka folder lokal."; pause; return; }
+  localdir="$RESOLVED_DIR"
+  echo "    ${C_GREEN}✔ Folder ditemukan:${C_RESET} $localdir"
   mapfile -t LOCAL_FILES < <(find "$localdir" -type f -print 2>/dev/null)
   [ "${#LOCAL_FILES[@]}" -gt 0 ] || { msg_warn "Tidak ada file di folder tersebut."; pause; return; }
   echo
