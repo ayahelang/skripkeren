@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.6"
+VER="0.4.8"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -184,10 +184,35 @@ token_help(){
 
 open_url(){
   local url="$1"
-  if command -v start >/dev/null 2>&1; then start "" "$url" >/dev/null 2>&1 || true
-  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
-  elif command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || true
-  else echo "    Buka manual: $url"; fi
+  echo
+  echo "    ┌────────────────────────────────────────────────────────────┐"
+  echo "    │  BUKA LINK INI (Ctrl+klik / Cmd+klik di Codespaces):       │"
+  echo "    └────────────────────────────────────────────────────────────┘"
+  echo
+  echo "    ${C_GREEN}${C_BOLD}${url}${C_RESET}"
+  echo
+  # OSC-8 hyperlink (VS Code / Windows Terminal / iTerm)
+  printf "    "
+  printf "\033]8;;%s\033\\" "$url"
+  printf "${C_CYAN}${C_BOLD}👉 KLIK DI SINI UNTUK BUKA HALAMAN TOKEN${C_RESET}"
+  printf "\033]8;;\033\\"
+  printf "\n\n"
+  echo "    ${C_DIM}Jika tidak bisa diklik: salin URL hijau di atas ke tab browser baru.${C_RESET}"
+  echo
+
+  if command -v cmd.exe >/dev/null 2>&1; then
+    cmd.exe /c start "" "$url" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 || true
+  elif command -v open >/dev/null 2>&1; then
+    open "$url" >/dev/null 2>&1 || true
+  elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -Command "Start-Process \"$url\"" >/dev/null 2>&1 || true
+  fi
+  if command -v code >/dev/null 2>&1; then
+    code --open-url "$url" >/dev/null 2>&1 || true
+  fi
+  [ -n "${BROWSER:-}" ] && "$BROWSER" "$url" >/dev/null 2>&1 || true
 }
 
 # Wizard: user isi data → buka halaman GitHub → tempel token → login
@@ -235,12 +260,18 @@ wizard_create_pat(){
     open_url "https://github.com/settings/tokens/new?description=$(urlenc "$note_name")&scopes=repo"
   fi
   echo
-  msg_info "Browser dibuka (atau buka URL manual jika tidak muncul)."
-  echo "    Setelah token tercopy di GitHub, tempel di bawah."
+  msg_info "Gunakan link/URL di atas (Ctrl+klik di Codespaces)."
+  echo "    Di halaman GitHub:"
+  echo "      1. Note diisi (sudah bisa otomatis di URL)"
+  echo "      2. Centang scope ${C_BOLD}repo${C_RESET} (untuk Classic)"
+  echo "      3. Klik Generate token"
+  echo "      4. Copy token (ghp_....) — hanya tampil sekali"
+  echo
+  echo "    Lalu tempel token di bawah ini."
   echo
 
   local t
-  t=$(ask_secret "    Tempel PAT di sini: ")
+  t=$(ask_secret "    Tempel PAT (ghp_...) di sini: ")
   if [ -z "$t" ]; then
     msg_err "Token kosong. Wizard dibatalkan."
     pause
