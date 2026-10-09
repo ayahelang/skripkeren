@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.5"
+VER="0.4.6"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -170,39 +170,92 @@ auto_login(){
 # ---------- Authentication ----------
 token_help(){
   title
-  echo "    ${C_BOLD}CARA MEMBUAT GITHUB TOKEN (PAT)${C_RESET}"
+  echo "    ${C_BOLD}PANDUAN TOKEN GITHUB (PAT)${C_RESET}"
   echo
-  echo "    ${C_YELLOW}Catatan penting:${C_RESET}"
-  echo "    GitHub ${C_BOLD}tidak lagi mengizinkan login API pakai username+password${C_RESET}."
-  echo "    Yang dipakai sekarang: Personal Access Token (PAT) atau login lewat 'gh auth'."
+  echo "    GitHub tidak mengizinkan membuat token hanya dengan username+password."
+  echo "    Yang bisa otomatis: wizard ini + browser, atau login via gh (opsi 2)."
   echo
-  echo "    ${C_BOLD}Opsi A — Classic PAT (paling sederhana untuk semua repo)${C_RESET}"
-  echo "    1. Buka: https://github.com/settings/tokens"
-  echo "    2. Generate new token (classic)"
-  echo "    3. Centang scope minimal: ${C_CYAN}repo${C_RESET}"
-  echo "       (tambah ${C_CYAN}delete_repo${C_RESET} / ${C_CYAN}workflow${C_RESET} jika perlu)"
-  echo "    4. Generate → copy token (hanya tampil sekali)"
-  echo
-  echo "    ${C_BOLD}Opsi B — Fine-grained PAT${C_RESET}"
-  echo "    1. Buka: https://github.com/settings/personal-access-tokens"
-  echo "    2. Generate new token → pilih repository"
-  echo "    3. Permissions: Metadata Read, Contents Read/Write"
-  echo "       (+ Administration / Pages jika butuh rename/delete/Pages)"
-  echo
-  echo "    ${C_BOLD}Opsi C — Tanpa tempel token (pakai GitHub CLI)${C_RESET}"
-  echo "    Install gh, lalu di menu Login pilih [G] — browser/device code."
-  echo
-  msg_warn "Jangan bagikan token ke siapapun. Script ini tidak menyimpan token ke disk."
-  echo
+  echo "    ${C_CYAN}[W]${C_RESET} Jalankan wizard buat PAT (disarankan)"
+  echo "    ${C_CYAN}[Enter]${C_RESET} Kembali"
   local c
-  c=$(ask "    Tekan O untuk buka halaman token di browser, atau Enter kembali: ")
-  if [[ "$c" =~ ^[Oo]$ ]]; then
-    local url="https://github.com/settings/tokens"
-    if command -v start >/dev/null 2>&1; then start "" "$url" >/dev/null 2>&1 || true
-    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
-    elif command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || true
-    else echo "    Buka manual: $url"; fi
+  c=$(ask "    Pilihan: ")
+  [[ "$c" =~ ^[Ww]$ ]] && wizard_create_pat
+}
+
+open_url(){
+  local url="$1"
+  if command -v start >/dev/null 2>&1; then start "" "$url" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
+  elif command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || true
+  else echo "    Buka manual: $url"; fi
+}
+
+# Wizard: user isi data → buka halaman GitHub → tempel token → login
+wizard_create_pat(){
+  title
+  echo "    ${C_BOLD}WIZARD BUAT PERSONAL ACCESS TOKEN${C_RESET}"
+  echo
+  echo "    Isi data di bawah. Script akan membuka halaman GitHub yang tepat,"
+  echo "    lalu Anda salin token yang muncul dan tempel di sini."
+  echo
+
+  local note_name repo_hint kind
+  note_name=$(ask "    1) Nama token (contoh: silverhawk-upload): ")
+  [ -z "$note_name" ] && note_name="silverhawk-autocli"
+
+  echo
+  echo "    2) Jenis token:"
+  echo "       [1] Classic PAT (paling mudah, akses semua repo) ${C_DIM}— disarankan${C_RESET}"
+  echo "       [2] Fine-grained (hanya repo tertentu)"
+  kind=$(ask "    Pilih 1 atau 2: ")
+  [ -z "$kind" ] && kind="1"
+
+  repo_hint=$(ask "    3) Nama repo yang perlu write (contoh: darulistiqomah): ")
+  [ -z "$repo_hint" ] && repo_hint="${REPO_NAME:-darulistiqomah}"
+
+  echo
+  echo "    ${C_BOLD}Ringkasan:${C_RESET}"
+  echo "      Nama token : $note_name"
+  echo "      Jenis      : $([ "$kind" = "2" ] && echo Fine-grained || echo Classic)"
+  echo "      Repo target: $repo_hint"
+  echo
+  echo "    Langkah di browser sebentar lagi:"
+  if [ "$kind" = "2" ]; then
+    echo "      • Generate fine-grained token"
+    echo "      • Repository access → Only select → pilih: $repo_hint"
+    echo "      • Permissions → Contents: Read and write"
+    echo "      • Metadata: Read-only"
+    echo "      • Generate token → COPY"
+    open_url "https://github.com/settings/personal-access-tokens/new"
+  else
+    echo "      • Generate new token (classic)"
+    echo "      • Note: $note_name"
+    echo "      • Centang scope: ${C_CYAN}repo${C_RESET}"
+    echo "      • Generate token → COPY (hanya tampil sekali)"
+    open_url "https://github.com/settings/tokens/new?description=$(urlenc "$note_name")&scopes=repo"
   fi
+  echo
+  msg_info "Browser dibuka (atau buka URL manual jika tidak muncul)."
+  echo "    Setelah token tercopy di GitHub, tempel di bawah."
+  echo
+
+  local t
+  t=$(ask_secret "    Tempel PAT di sini: ")
+  if [ -z "$t" ]; then
+    msg_err "Token kosong. Wizard dibatalkan."
+    pause
+    return 1
+  fi
+  TOKEN=""
+  GH_USER=""
+  if try_token "$t" "PAT wizard"; then
+    msg_ok "Token aktif. Siap upload ke repo (termasuk $repo_hint jika scope cukup)."
+    pause
+    return 0
+  fi
+  msg_err "Token ditolak GitHub. Cek scope/repo access, buat ulang, coba lagi."
+  pause
+  return 1
 }
 
 login_via_gh(){
@@ -333,7 +386,7 @@ login(){
       login_manual_pat || true
       login
       ;;
-    4) token_help; login ;;
+    4) wizard_create_pat || true; login ;;
     *) msg_warn "Pilihan tidak valid."; sleep 1; login ;;
   esac
 }
