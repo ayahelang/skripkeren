@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Panduan Repo Manager v7 by Ted</title>
+<title>Skripkeren — Panduan Script GitHub</title>
 <link rel="stylesheet" href="https://silverhawk.web.id/lock/lock.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -11,119 +11,115 @@
 
 <div class="container">
 <header>
-<h1>Repo Manager v7 by Ted</h1>
-<p>Skrip Bash untuk manajemen akun & repository GitHub via terminal</p>
+<h1>Skripkeren by Ted</h1>
+<p>Kumpulan skrip Bash untuk manajemen repository GitHub — jalan di Desktop, Codespaces, maupun terminal online</p>
 </header>
 
 <section>
-<h2>1. Persiapan</h2>
-<p>Install aplikasi berikut di laptop/Komputer Anda:</p>
+<h2>1. Persiapan (opsional di Codespaces)</h2>
+<p>Di <strong>GitHub Codespaces</strong> biasanya <code>git</code> dan <code>curl</code> sudah ada. Di laptop, siapkan:</p>
 <ol>
-<li><a href="installgit.html" target="_blank">Terminal Git Bash</a></li>
+<li><a href="installgit.html" target="_blank">Terminal Git Bash</a> (Windows) atau Terminal biasa (macOS/Linux)</li>
 <li>
-GitHub CLI (gh), copas dan jalankan script ini di Terminal Git Bash:
-<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)</pre>
+GitHub CLI (<code>gh</code>) — disarankan agar login lebih mudah:
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://silverhawk.web.id/skripkeren/installgitcli.sh)</pre>
 </li>
 </ol>
-<div class="note">💡 Pastikan perintah <code>git</code> dan <code>gh</code> bisa dijalankan di terminal.</div>
+<div class="note">💡 <code>t-rm.sh</code> bisa jalan <strong>tanpa</strong> <code>gh</code> (pakai token/PAT). Tapi dengan <code>gh</code>, login bisa lewat browser tanpa tempel token manual.</div>
 </section>
 
 <section>
-<h2>2. Menjalankan Skrip</h2>
-<p>Buka terminal lalu jalankan salah satu perintah berikut:</p>
+<h2>2. Silverhawk AutoCLI — <code>t-rm.sh</code></h2>
+<p>All-in-one: login, pilih repo, file manager (browse/upload/hapus), buat/rename/hapus repo, GitHub Pages.</p>
 
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+<p><strong>Jalankan di mana saja</strong> (Desktop / Codespaces / Copilot terminal):</p>
 
-<p>atau:</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
 
-<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://silverhawk.web.id/skripkeren/t-rm.sh)</pre>
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://silverhawk.web.id/skripkeren/t-rm.sh -o t-rm.sh && bash t-rm.sh</pre>
 
-<p>atau:</p>
+<h3>Login (otomatis menyesuaikan lingkungan)</h3>
+<ul>
+<li><strong>Codespaces</strong> — coba pakai <code>GITHUB_TOKEN</code> otomatis</li>
+<li><strong>Desktop + gh sudah login</strong> — ambil sesi <code>gh auth</code></li>
+<li><strong>Lainnya</strong> — pilih di menu:
+  <ol>
+    <li>Auto-detect lagi</li>
+    <li>Login via GitHub CLI (browser / device code) — <em>disarankan</em></li>
+    <li>Tempel PAT manual</li>
+    <li>Panduan buat PAT</li>
+  </ol>
+</li>
+</ul>
+<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
+⚠️ GitHub <strong>tidak mengizinkan</strong> login API hanya dengan username + password.
+Gunakan PAT atau <code>gh auth login</code>.
+</div>
 
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
-
-<p>atau:</p>
-
-<pre><button class="copy-btn">Copy</button>sh &lt;(curl -s https://raw.githubusercontent.com/ayahelang/skripkeren/main/t-rm.sh)</pre>
-
-</section>
-
-<section>
-<h2>3. Menu Utama</h2>
-
-<p>Saat dijalankan, Anda akan melihat menu interaktif seperti berikut:</p>
-
+<h3>Menu utama (ringkas)</h3>
 <pre><button class="copy-btn">Copy</button>
-=== Repo Manager V7 by Ted ===
-Menu:
- 1) pilih_akun
- 2) login_github
- 3) create_new_repo
- 4) change_workdir
- 5) upload_folder
- 6) list_repo_files
- 7) activate_pages
- 8) rename_repo
- 9) edit_description
-10) delete_repo
-11) manage_scopes
-12) manage_collaborators
-13) delete_repo_items
- 0) Keluar
+AKUN &amp; REPOSITORY
+ 1. Login / ganti akun GitHub
+ 2. Pilih repository
+ 3. File Manager (browse / upload / hapus)
+ 4. Hapus file/folder cepat
+ 5. Buat repository baru
+ 6. Rename repository
+ 7. Hapus repository
+ 8. GitHub Pages / Jekyll
+ 9. Branch &amp; riwayat
+10. Pengaturan repository
+11. Bantuan token GitHub
+ 0. Keluar
 </pre>
 </section>
 
 <section>
-<h2>4. Contoh Penggunaan</h2>
-
-<ol>
-<li>Login GitHub dengan menu <code>2</code>.</li>
-<li>Pilih akun aktif dengan menu <code>1</code>.</li>
-<li>Gunakan menu lain sesuai kebutuhan, misalnya upload folder atau aktifkan GitHub Pages.</li>
-</ol>
+<h2>3. Repo Manager v7 — <code>t-rm7.sh</code> (berbasis gh CLI)</h2>
+<p>Alternatif berbasis menu <code>gh</code> klasik (multi-akun, collaborator, scopes, dll.):</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://silverhawk.web.id/skripkeren/t-rm7.sh)</pre>
+<p>Butuh <code>gh</code> + <code>git</code> terpasang. Cocok jika sudah terbiasa alur Repo Manager lama.</p>
 </section>
 
 <section>
-<h2>5. Restore / Rollback ke Commit Lama</h2>
-<p>Jika kamu salah upload file atau website jadi error, gunakan script <code>restore.sh</code> untuk mengembalikan repo ke <strong>commit</strong> (titik sejarah) sebelumnya.</p>
-
-<p><strong>Cara pakai (paling praktis):</strong></p>
+<h2>4. Restore / Rollback commit — <code>restore.sh</code></h2>
+<p>Kembalikan repo ke commit (titik sejarah) sebelumnya. Aman dipakai lewat <code>curl | bash</code> (input dari terminal asli).</p>
 <ol>
-<li>Buka <strong>Codespaces</strong> atau terminal di folder repository yang ingin dikembalikan.</li>
-<li>Jalankan perintah berikut:</li>
+<li>Buka terminal <strong>di dalam folder repository</strong> (Codespaces atau lokal).</li>
+<li>Jalankan:</li>
 </ol>
-
 <pre><button class="copy-btn">Copy</button>curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh | bash</pre>
-
-<p>atau versi lebih aman (download dulu):</p>
-
+<p>atau:</p>
 <pre><button class="copy-btn">Copy</button>curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh -o restore.sh && chmod +x restore.sh && ./restore.sh</pre>
-
 <div class="note">
-<strong>Apa yang dilakukan script ini?</strong><br>
-• Menampilkan info akun, nama repo, branch, dan commit yang sedang aktif<br>
-• Menampilkan daftar 25 commit terakhir (dengan nomor)<br>
-• Kamu tinggal pilih nomor commit yang ingin dikembalikan<br>
-• Script akan melakukan <code>git reset --hard</code> + <code>git push --force</code>
+Script menampilkan info akun/repo/branch, daftar 25 commit, lalu Anda pilih nomor.<br>
+Konfirmasi wajib ketik <code>YA</code> sebelum <code>reset --hard</code> + <code>push --force</code>.
 </div>
-
-<p class="note" style="border-left: 4px solid #f5c542; padding-left: 12px;">
-⚠️ <strong>Peringatan:</strong> Force push akan menghapus commit setelah titik yang dipilih. Pastikan kamu yakin sebelum mengetik <code>YA</code>.
-</p>
-
-<p>Untuk panduan rollback yang lebih lengkap (cara website + Git Bash manual), lihat:</p>
-<p><a href="panduan-rollback-github.html" target="_blank">→ Panduan Rollback GitHub Pages (lengkap)</a></p>
+<p><a href="panduan-rollback-github.html" target="_blank">→ Panduan Rollback GitHub Pages (lengkap, cara web + Git Bash)</a></p>
 </section>
 
 <section>
-<h2>6. Lainnya</h2>
-<p>Coba juga install Google Chrome di Linux Bookworm Puppy dengan perintah berikut:</p>
+<h2>5. Installer lain</h2>
+<p>Install Google Chrome di Linux Bookworm / Puppy:</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy.sh)</pre>
+</section>
 
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy.sh)</pre>
+<section>
+<h2>6. Daftar file aktif</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
+<tr><th align="left">File</th><th align="left">Fungsi</th></tr>
+<tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI v0.4 — all-in-one (API + token)</td></tr>
+<tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
+<tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
+<tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
+<tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
+</table>
+<div class="note">File menu parsial lama (<code>menu*.sh</code>, <code>t-rm2</code>–<code>t-rm6</code>, dll.) sudah dihapus karena fungsinya tercakup di atas.</div>
 </section>
 
 <footer>
-&copy; 2025 — Dokumentasi <code>t-rm7.sh</code> | Repo: ayahelang/skripkeren
+&copy; 2026 — Skripkeren | Repo: ayahelang/skripkeren | Host: silverhawk.web.id/skripkeren
 </footer>
 
 </div>
@@ -134,38 +130,23 @@ Menu:
       <h2>🚀 GitHub Repo → GitHub Pages</h2>
       <button id="btnCloseSplash" class="closeSplash" title="Tutup">&times;</button>
     </div>
-
     <p>Tempel alamat repository GitHub, lalu klik <b>Convert</b>.</p>
-
-    <input
-      id="repoInput"
-      class="repo-input"
-      type="url"
-      autocomplete="off"
-      spellcheck="false"
+    <input id="repoInput" class="repo-input" type="url" autocomplete="off" spellcheck="false"
       placeholder="https://github.com/username/repository">
-
     <div class="repo-actions">
       <button id="btnConvert">Convert</button>
       <button id="btnCopyResult">Copy</button>
       <button id="btnOpenResult">Open</button>
     </div>
-
     <div id="repoStatus" class="repo-status"></div>
-
     <div id="repoResult"></div>
-
     <a id="repoLink" href="#" target="_blank" rel="noopener">
-      <img
-        id="repoThumb"
-        src=""
-        alt="Preview GitHub Pages">
+      <img id="repoThumb" src="" alt="Preview GitHub Pages">
     </a>
   </div>
 </div>
 
 <script src="script.js"></script>
 <script src="https://silverhawk.web.id/lock/lock.js"></script>
-
 </body>
 </html>
