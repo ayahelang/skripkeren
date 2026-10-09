@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.2"
+VER="0.4.3"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -499,39 +499,27 @@ upload_one(){
     -H "Content-Type: application/json" \
     "$API/repos/$REPO_OWNER/$REPO_NAME/contents/$(urlenc "$remote")" --data-binary @"$payload" >/dev/null
 }
-# Kumpulkan kandidat path dari input user (Windows / WSL / Git Bash / Codespaces)
+# --- Path resolver: Windows / WSL / Git Bash / Codespaces ---
+# User boleh input C:\Users\... ; di Codespaces dicari folder yang sama namanya di /workspaces
 resolve_local_dir(){
-  local raw="$1" p drive rest cand
+  local raw="$1" p drive rest cand leaf parent
   RESOLVED_DIR=""
-  # trim + hapus kutip
   p=$(printf '%s' "$raw" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^["'\'']//;s/["'\'']$//')
-  # backslash → slash
   p=$(printf '%s' "$p" | sed 's|\\|/|g')
-  # expand ~
   [[ "$p" == ~* ]] && p="${p/#\~/$HOME}"
 
   local candidates=()
   candidates+=("$p")
-
-  # C:/Users/... atau C:/...
   if [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]]; then
-    drive="${BASH_REMATCH[1],,}"
-    rest="${BASH_REMATCH[2]}"
-    candidates+=("/${drive}/${rest}")           # Git Bash: /c/Users/...
-    candidates+=("/mnt/${drive}/${rest}")       # WSL: /mnt/c/Users/...
-    candidates+=("/cygdrive/${drive}/${rest}")  # Cygwin
+    drive="${BASH_REMATCH[1],,}"; rest="${BASH_REMATCH[2]}"
+    candidates+=("/${drive}/${rest}" "/mnt/${drive}/${rest}" "/cygdrive/${drive}/${rest}")
   fi
-  # sudah bentuk /c/Users ...
   if [[ "$p" =~ ^/([a-zA-Z])/(.*)$ ]]; then
-    drive="${BASH_REMATCH[1],,}"
-    rest="${BASH_REMATCH[2]}"
-    candidates+=("/${drive}/${rest}")
-    candidates+=("/mnt/${drive}/${rest}")
-    candidates+=("/cygdrive/${drive}/${rest}")
+    drive="${BASH_REMATCH[1],,}"; rest="${BASH_REMATCH[2]}"
+    candidates+=("/${drive}/${rest}" "/mnt/${drive}/${rest}" "/cygdrive/${drive}/${rest}")
   fi
 
-  # dedupe + cek mana yang ada
-  local seen="|" x
+  local seen="|" 
   for cand in "${candidates[@]}"; do
     [ -z "$cand" ] && continue
     [[ "$seen" == *"|$cand|"* ]] && continue
@@ -541,6 +529,70 @@ resolve_local_dir(){
       [ -n "$RESOLVED_DIR" ] && return 0
     fi
   done
+
+  # Fallback cerdas: ambil nama folder terakhir dari path Windows
+  # C:\Users\JW\Downloads\darulistiqomah-website\darulistiqomah → darulistiqomah
+  leaf="${p##*/}"
+  leaf="${leaf%/}"
+  [ -z "$leaf" ] && return 1
+
+  echo "    ${C_DIM}Path langsung tidak ada di mesin ini. Mencari folder bernama '${leaf}' ...${C_RESET}"
+
+  local found=()
+  local search_roots=()
+  [ -d /workspaces ] && search_roots+=("/workspaces")
+  [ -n "${HOME:-}" ] && search_roots+=("$HOME")
+  search_roots+=("$(pwd)" "/tmp")
+
+  local root
+  for root in "${search_roots[@]}"; do
+    [ -d "$root" ] || continue
+    while IFS= read -r -d '' d; do
+      found+=("$d")
+    done < <(find "$root" -maxdepth 6 -type d -name "$leaf" -print0 2>/dev/null)
+  done
+
+  # juga cari parent-leaf (darulistiqomah-website/darulistiqomah)
+  parent="${p%/*}"
+  parent="${parent##*/}"
+  if [ -n "$parent" ] && [ "$parent" != "$leaf" ] && [ "$parent" != "Users" ]; then
+    for root in "${search_roots[@]}"; do
+      [ -d "$root" ] || continue
+      while IFS= read -r -d '' d; do
+        found+=("$d")
+      done < <(find "$root" -maxdepth 6 -type d -path "*/${parent}/${leaf}" -print0 2>/dev/null)
+    done
+  fi
+
+  # dedupe found
+  local uniq=() u
+  seen="|"
+  for u in "${found[@]}"; do
+    [[ "$seen" == *"|$u|"* ]] && continue
+    seen="${seen}${u}|"
+    uniq+=("$u")
+  done
+
+  if [ "${#uniq[@]}" -eq 1 ]; then
+    RESOLVED_DIR="${uniq[0]}"
+    echo "    ${C_GREEN}✔ Ditemukan otomatis:${C_RESET} $RESOLVED_DIR"
+    return 0
+  fi
+  if [ "${#uniq[@]}" -gt 1 ]; then
+    echo "    Ditemukan beberapa folder '${leaf}':"
+    local i=1
+    for u in "${uniq[@]}"; do
+      printf "      %d) %s\n" "$i" "$u"
+      ((i++))
+    done
+    local pick
+    pick=$(ask "    Pilih nomor folder: ")
+    if [[ "$pick" =~ ^[0-9]+$ ]] && [ "$pick" -ge 1 ] && [ "$pick" -le "${#uniq[@]}" ]; then
+      RESOLVED_DIR="${uniq[$((pick-1))]}"
+      echo "    ${C_GREEN}✔ Dipilih:${C_RESET} $RESOLVED_DIR"
+      return 0
+    fi
+  fi
   return 1
 }
 
@@ -552,44 +604,36 @@ upload_files(){
   echo "    Folder tujuan GitHub aktif: ${C_YELLOW}/${CURRENT_PATH}${C_RESET}"
   echo "    Working directory saat ini: ${C_DIM}$(pwd)${C_RESET}"
   echo
-  # Deteksi lingkungan
   if [ -n "${CODESPACES:-}" ] || [ -n "${CODESPACE_NAME:-}" ]; then
-    msg_warn "Anda di GitHub Codespaces (cloud)."
-    echo "    Path Windows C:\\Users\\... ${C_BOLD}tidak bisa${C_RESET} diakses dari sini."
-    echo "    Upload dulu file ke Codespaces (drag ke Explorer kiri), lalu pakai path:"
-    echo "      /workspaces/${CODESPACE_NAME:-NAMA}/folder-website"
-    echo "    Atau jalankan script ini di ${C_BOLD}Git Bash Windows${C_RESET} (bukan Codespaces)."
+    echo "    ${C_DIM}Mode Codespaces: boleh tempel path Windows (C:\\Users\\...).${C_RESET}"
+    echo "    ${C_DIM}Script akan mencari folder dengan nama yang sama di /workspaces.${C_RESET}"
+    echo "    ${C_DIM}Pastikan folder sudah ada di Codespaces (sekali saja: drag ke Explorer kiri).${C_RESET}"
     echo
   fi
-  echo "    ${C_DIM}Contoh path yang valid di mesin ini:${C_RESET}"
-  echo "      • Relative : ./darulistiqomah   atau   ."
-  echo "      • Git Bash : /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah"
-  echo "      • WSL      : /mnt/c/Users/JW/Downloads/..."
-  echo "      • Codespaces: /workspaces/.../darulistiqomah"
+  echo "    Tempel path folder (Windows / Linux / relative semuanya diterima):"
+  echo "      contoh: C:\\Users\\JW\\Downloads\\darulistiqomah-website\\darulistiqomah"
   echo
   localdir=$(ask "    Path folder lokal: ")
   if ! resolve_local_dir "$localdir"; then
-    msg_err "Folder lokal tidak ditemukan di lingkungan ini."
-    echo "    Input Anda : $localdir"
+    msg_err "Folder tidak ditemukan di mesin tempat script berjalan."
+    echo "    Input: $localdir"
     echo
-    echo "    ${C_BOLD}Penyebab paling umum:${C_RESET}"
-    echo "      1) Script jalan di Codespaces, file masih di PC Windows"
-    echo "      2) Nama folder salah / belum di-extract dari zip"
-    echo "      3) Path typo"
-    echo
-    echo "    ${C_BOLD}Solusi cepat:${C_RESET}"
-    echo "      A. Di Git Bash Windows (disarankan untuk file di Downloads):"
-    echo "         cd /c/Users/JW/Downloads/darulistiqomah-website/darulistiqomah && pwd"
-    echo "         # jika pwd berhasil, copy path itu ke prompt upload"
-    echo "      B. Di Codespaces: drag folder ke file tree, lalu:"
-    echo "         find /workspaces -maxdepth 3 -type d -name 'darulistiqomah' 2>/dev/null"
-    echo "      C. Path relatif dari folder sekarang ($(pwd)):"
-    echo "         ls -la"
+    if [ -n "${CODESPACES:-}" ] || [ -n "${CODESPACE_NAME:-}" ]; then
+      echo "    ${C_BOLD}Di Codespaces wajib sekali ini:${C_RESET}"
+      echo "      1. Drag folder 'darulistiqomah' ke panel file kiri Codespaces"
+      echo "      2. Jalankan upload lagi, tempel path Windows yang sama"
+      echo "      Script akan menemukan folder itu otomatis di /workspaces."
+      echo
+      echo "    Cek cepat apakah folder sudah masuk cloud:"
+      echo "      find /workspaces -maxdepth 5 -type d -name 'darulistiqomah' 2>/dev/null"
+    else
+      echo "    Pastikan path ada. Coba: ls \"/c/Users/JW/Downloads/...\""
+    fi
     pause
     return
   fi
   localdir="$RESOLVED_DIR"
-  echo "    ${C_GREEN}✔ Folder ditemukan:${C_RESET} $localdir"
+  echo "    ${C_GREEN}✔ Siap upload dari:${C_RESET} $localdir"
   mapfile -t LOCAL_FILES < <(find "$localdir" -type f -print 2>/dev/null)
   [ "${#LOCAL_FILES[@]}" -gt 0 ] || { msg_warn "Tidak ada file di folder tersebut."; pause; return; }
   echo
