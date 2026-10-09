@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 # ==============================================
 #  Universal Git Restore Tool
 #  Bisa dipakai di repo mana pun
@@ -16,7 +15,22 @@ CYAN='\033[0;36m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-clear
+# Semua input interaktif harus dari terminal asli
+# (penting saat dijalankan via: curl ... | bash)
+TTY=/dev/tty
+if [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
+  TTY=/dev/stdin
+fi
+
+ask() {
+  # $1 = prompt
+  local _ans
+  printf "%s" "$1" >"$TTY"
+  IFS= read -r _ans <"$TTY" || true
+  printf "%s" "$_ans"
+}
+
+clear 2>/dev/null || true
 echo -e "${CYAN}"
 echo "╔════════════════════════════════════════════════════╗"
 echo "║          Universal Git Restore Tool                ║"
@@ -39,7 +53,7 @@ CURRENT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null)
 CURRENT_DATE=$(git log -1 --pretty=format:"%ad" --date=short 2>/dev/null)
 
 # Coba deteksi username & repo name
-if [[ "$REPO_URL" =~ github.com[:/](.+)/(.+)\.git$ ]] || [[ "$REPO_URL" =~ github.com[:/](.+)/(.+)$ ]]; then
+if [[ "$REPO_URL" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
   OWNER="${BASH_REMATCH[1]}"
   REPO_NAME="${BASH_REMATCH[2]}"
 else
@@ -62,7 +76,11 @@ echo ""
 echo -e "${CYAN}Mengambil daftar 25 commit terakhir...${NC}"
 echo ""
 
-mapfile -t COMMITS < <(git log --pretty=format:"%h|%ad|%an|%s" --date=short -n 25)
+# Pastikan ada newline di akhir supaya mapfile tidak drop baris terakhir
+COMMITS=()
+while IFS= read -r line || [ -n "$line" ]; do
+  [ -n "$line" ] && COMMITS+=("$line")
+done < <(git log --pretty=format:"%h|%ad|%an|%s" --date=short -n 25 && echo)
 
 if [ ${#COMMITS[@]} -eq 0 ]; then
   echo -e "${RED}Tidak ada commit ditemukan.${NC}"
@@ -77,8 +95,7 @@ echo "────────────────────────�
 for i in "${!COMMITS[@]}"; do
   IFS='|' read -r HASH DATE AUTHOR MSG <<< "${COMMITS[$i]}"
   NUM=$((i+1))
-  
-  # Tandai commit yang sedang aktif
+
   if [ "$HASH" = "$CURRENT_COMMIT" ]; then
     printf "  %2d. %-10s  %-12s  %-18s  %s ${YELLOW}← SEKARANG${NC}\n" "$NUM" "$DATE" "$HASH" "$AUTHOR" "$MSG"
   else
@@ -92,17 +109,30 @@ echo ""
 
 # ---------- Pilih nomor ----------
 while true; do
-  read -p "Pilih nomor commit yang ingin dikembalikan: " CHOICE
+  CHOICE=$(ask "Pilih nomor commit yang ingin dikembalikan: ")
+  # trim spasi
+  CHOICE=$(echo "$CHOICE" | tr -d '[:space:]')
 
-  if [[ "$CHOICE" == "0" ]]; then
+  if [ -z "$CHOICE" ]; then
+    echo -e "${RED}Nomor kosong. Coba lagi.${NC}"
+    continue
+  fi
+
+  if [ "$CHOICE" = "0" ]; then
     echo "Dibatalkan."
     exit 0
   fi
 
-  if ! [[ "$CHOICE" =~ ^[0-9]+$ ]] || [ "$CHOICE" -lt 1 ] || [ "$CHOICE" -gt ${#COMMITS[@]} ]; then
-    echo -e "${RED}Nomor tidak valid. Coba lagi.${NC}"
+  if ! [[ "$CHOICE" =~ ^[0-9]+$ ]]; then
+    echo -e "${RED}Nomor tidak valid (bukan angka). Coba lagi.${NC}"
     continue
   fi
+
+  if [ "$CHOICE" -lt 1 ] || [ "$CHOICE" -gt ${#COMMITS[@]} ]; then
+    echo -e "${RED}Nomor di luar jangkauan (1-${#COMMITS[@]}). Coba lagi.${NC}"
+    continue
+  fi
+
   break
 done
 
@@ -124,7 +154,8 @@ echo -e "${RED}║  Semua commit setelah titik ini akan HILANG.       ║${NC}"
 echo -e "${RED}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-read -p "Ketik 'YA' (huruf besar semua) untuk melanjutkan: " CONFIRM
+CONFIRM=$(ask "Ketik 'YA' (huruf besar semua) untuk melanjutkan: ")
+CONFIRM=$(echo "$CONFIRM" | tr -d '[:space:]')
 
 if [ "$CONFIRM" != "YA" ]; then
   echo "Dibatalkan."
@@ -138,7 +169,7 @@ echo -e "${CYAN}Melakukan restore...${NC}"
 git reset --hard "$SELECTED_HASH"
 
 # Force push
-echo -e "${CYAN}Force push ke origin $CURRENT_BRANCH ...${NC}"
+echo -e "${CYAN}Force push ke origin ${CURRENT_BRANCH} ...${NC}"
 git push origin "$CURRENT_BRANCH" --force
 
 echo ""
