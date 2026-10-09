@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Silverhawk AutoCLI v0.2
 # GitHub repository/file manager
-# Online: sh <(curl -fsSL https://silverhawk.web.id/skripkeren/t-rm.sh)
+# Online (Codespaces OK): bash <(curl -fsSL https://silverhawk.web.id/skripkeren/t-rm.sh)
 set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.2.1"
+VER="0.4.0"
 API="https://api.github.com"
-TOKEN="${GITHUB_TOKEN:-}"
+TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
 REPO_OWNER=""
 REPO_NAME=""
@@ -19,8 +19,16 @@ TMP_ROOT="${TMPDIR:-/tmp}/silverhawk-autocli-$$"
 mkdir -p "$TMP_ROOT"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
+# ---------- TTY-safe input (aman di Codespaces & curl|bash) ----------
+TTY=/dev/tty
+if [ ! -c "$TTY" ] || [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
+  TTY=/dev/stdin
+fi
+ask(){ local _a; printf "%s" "$1" >"$TTY"; IFS= read -r _a <"$TTY" || true; printf "%s" "$_a"; }
+ask_secret(){ local _a; printf "%s" "$1" >"$TTY"; IFS= read -r -s _a <"$TTY" || true; printf "\n" >"$TTY"; printf "%s" "$_a"; }
+
 # ---------- Terminal UI ----------
-if [ -t 1 ]; then
+if [ -t 1 ] || [ -t 2 ]; then
   C_RESET=$'\033[0m'; C_CYAN=$'\033[36m'; C_BLUE=$'\033[34m'; C_GREEN=$'\033[32m'
   C_YELLOW=$'\033[33m'; C_RED=$'\033[31m'; C_WHITE=$'\033[97m'; C_DIM=$'\033[2m'; C_BOLD=$'\033[1m'
 else
@@ -32,7 +40,7 @@ msg_warn(){ echo "${C_YELLOW}⚠ $*${C_RESET}"; }
 msg_err(){ echo "${C_RED}✖ $*${C_RESET}" >&2; beep; }
 msg_info(){ echo "${C_CYAN}ℹ $*${C_RESET}"; }
 hr(){ printf '%s\n' "${C_DIM}    ────────────────────────────────────────────────────────────────────────────────${C_RESET}"; }
-pause(){ echo; read -r -p "    Tekan Enter untuk melanjutkan... " _ || true; }
+pause(){ echo; ask "    Tekan Enter untuk melanjutkan... " >/dev/null; }
 title(){
   clear 2>/dev/null || true
   echo
@@ -107,68 +115,202 @@ check_tools(){
   fi
 }
 
+# ---------- Environment detection ----------
+detect_env(){
+  ENV_KIND="desktop"
+  ENV_HINT=""
+  if [ -n "${CODESPACES:-}" ] || [ -n "${CODESPACE_NAME:-}" ] || [ "${GITHUB_CODESPACES:-}" = "true" ]; then
+    ENV_KIND="codespaces"
+    ENV_HINT="GitHub Codespaces"
+  elif [ -n "${GITHUB_ACTIONS:-}" ]; then
+    ENV_KIND="actions"
+    ENV_HINT="GitHub Actions"
+  elif [ -n "${MSYSTEM:-}" ] || [[ "${OSTYPE:-}" == msys* ]] || [[ "${OSTYPE:-}" == cygwin* ]]; then
+    ENV_KIND="windows-gitbash"
+    ENV_HINT="Windows Git Bash"
+  elif [[ "${OSTYPE:-}" == darwin* ]]; then
+    ENV_KIND="macos"
+    ENV_HINT="macOS"
+  elif [[ "$(uname -s 2>/dev/null)" == "Linux" ]]; then
+    ENV_KIND="linux"
+    ENV_HINT="Linux"
+  fi
+  # Copilot / VS Code terminal often sets TERM_PROGRAM
+  if [ -n "${TERM_PROGRAM:-}" ]; then
+    ENV_HINT="${ENV_HINT:-terminal} (${TERM_PROGRAM})"
+  fi
+}
+
+try_token(){
+  # $1 = token value, $2 = label
+  local tok="$1" label="$2" me login_name
+  [ -z "$tok" ] && return 1
+  TOKEN="$tok"
+  me=$(api GET "/user" 2>/dev/null) || { TOKEN=""; return 1; }
+  login_name=$(printf '%s' "$me" | json_field login)
+  if [ -z "$login_name" ]; then TOKEN=""; return 1; fi
+  GH_USER="$login_name"
+  msg_ok "Login berhasil sebagai: $GH_USER  ${C_DIM}(via $label)${C_RESET}"
+  return 0
+}
+
+auto_login(){
+  # 1) Env tokens
+  if [ -n "${GITHUB_TOKEN:-}" ] && try_token "$GITHUB_TOKEN" "GITHUB_TOKEN"; then return 0; fi
+  if [ -n "${GH_TOKEN:-}" ] && try_token "$GH_TOKEN" "GH_TOKEN"; then return 0; fi
+  # 2) gh CLI session
+  if command -v gh >/dev/null 2>&1; then
+    local t
+    t=$(gh auth token 2>/dev/null || true)
+    if [ -n "$t" ] && try_token "$t" "gh auth token"; then return 0; fi
+  fi
+  return 1
+}
+
 # ---------- Authentication ----------
 token_help(){
   title
-  echo "    ${C_BOLD}CARA MEMBUAT GITHUB TOKEN${C_RESET}"
+  echo "    ${C_BOLD}CARA MEMBUAT GITHUB TOKEN (PAT)${C_RESET}"
   echo
-  echo "    1. Buka GitHub dan masuk ke akun Anda."
-  echo "    2. Buka: https://github.com/settings/personal-access-tokens"
-  echo "    3. Pilih ${C_BOLD}Fine-grained tokens${C_RESET} → Generate new token."
-  echo "    4. Beri nama, tentukan masa berlaku, dan pilih repository yang boleh diakses."
-  echo "    5. Untuk Silverhawk AutoCLI, aktifkan minimal:"
-  echo "       • Repository access → pilih repository yang ingin dikelola"
-  echo "       • Repository permissions → Metadata: Read-only"
-  echo "       • Repository permissions → Contents: Read and write"
-  echo "       • Administration: Read and write   (rename/delete repo; fitur tertentu)"
-  echo "       • Pages: Read and write             (fitur GitHub Pages)"
-  echo "       • Untuk membuat repository baru: Account permissions → Administration: Read and write"
-  echo "    6. Generate token, lalu COPY token saat ditampilkan."
+  echo "    ${C_YELLOW}Catatan penting:${C_RESET}"
+  echo "    GitHub ${C_BOLD}tidak lagi mengizinkan login API pakai username+password${C_RESET}."
+  echo "    Yang dipakai sekarang: Personal Access Token (PAT) atau login lewat 'gh auth'."
   echo
-  msg_warn "GitHub biasanya hanya menampilkan nilai token lengkap sekali. Jangan kirim token kepada orang lain."
-  echo "    Token Silverhawk AutoCLI hanya dipakai selama sesi dan tidak disimpan ke disk oleh script."
+  echo "    ${C_BOLD}Opsi A — Classic PAT (paling sederhana untuk semua repo)${C_RESET}"
+  echo "    1. Buka: https://github.com/settings/tokens"
+  echo "    2. Generate new token (classic)"
+  echo "    3. Centang scope minimal: ${C_CYAN}repo${C_RESET}"
+  echo "       (tambah ${C_CYAN}delete_repo${C_RESET} / ${C_CYAN}workflow${C_RESET} jika perlu)"
+  echo "    4. Generate → copy token (hanya tampil sekali)"
   echo
-  echo "    Jika browser tidak terbuka otomatis, copy alamat di atas ke browser."
-  read -r -p "    Tekan O untuk mencoba membuka halaman token, atau Enter untuk kembali: " c
+  echo "    ${C_BOLD}Opsi B — Fine-grained PAT${C_RESET}"
+  echo "    1. Buka: https://github.com/settings/personal-access-tokens"
+  echo "    2. Generate new token → pilih repository"
+  echo "    3. Permissions: Metadata Read, Contents Read/Write"
+  echo "       (+ Administration / Pages jika butuh rename/delete/Pages)"
+  echo
+  echo "    ${C_BOLD}Opsi C — Tanpa tempel token (pakai GitHub CLI)${C_RESET}"
+  echo "    Install gh, lalu di menu Login pilih [G] — browser/device code."
+  echo
+  msg_warn "Jangan bagikan token ke siapapun. Script ini tidak menyimpan token ke disk."
+  echo
+  local c
+  c=$(ask "    Tekan O untuk buka halaman token di browser, atau Enter kembali: ")
   if [[ "$c" =~ ^[Oo]$ ]]; then
-    if command -v start >/dev/null 2>&1; then start "" "https://github.com/settings/personal-access-tokens" >/dev/null 2>&1 || true
-    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "https://github.com/settings/personal-access-tokens" >/dev/null 2>&1 || true
-    elif command -v open >/dev/null 2>&1; then open "https://github.com/settings/personal-access-tokens" >/dev/null 2>&1 || true
-    else msg_warn "Tidak menemukan perintah pembuka browser otomatis."; fi
+    local url="https://github.com/settings/tokens"
+    if command -v start >/dev/null 2>&1; then start "" "$url" >/dev/null 2>&1 || true
+    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
+    elif command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || true
+    else echo "    Buka manual: $url"; fi
   fi
 }
+
+login_via_gh(){
+  if ! command -v gh >/dev/null 2>&1; then
+    msg_err "GitHub CLI (gh) belum terpasang."
+    echo "    Install: bash <(curl -fsSL https://silverhawk.web.id/skripkeren/installgitcli.sh)"
+    pause
+    return 1
+  fi
+  title
+  echo "    ${C_BOLD}LOGIN VIA GITHUB CLI (gh auth)${C_RESET}"
+  echo
+  echo "    Ini cara paling nyaman: GitHub memberi kode, Anda buka browser,"
+  echo "    lalu izinkan — ${C_BOLD}tanpa mengetik password di terminal${C_RESET}."
+  echo
+  echo "    Scope yang diminta: repo, workflow, read:org"
+  echo
+  local go
+  go=$(ask "    Lanjut? (Y/n): ")
+  [[ "$go" =~ ^[Nn]$ ]] && return 1
+
+  # Device/web flow — works on Codespaces, desktop, remote SSH
+  # stdin/stdout harus ke terminal asli
+  if gh auth login -h github.com -p https -w -s repo,workflow,read:org,delete_repo <"$TTY" >"$TTY" 2>"$TTY"; then
+    local t
+    t=$(gh auth token 2>/dev/null || true)
+    if [ -n "$t" ] && try_token "$t" "gh auth login"; then
+      pause
+      return 0
+    fi
+  fi
+  # Fallback tanpa -w (device code flow)
+  msg_info "Mencoba mode device code..."
+  if gh auth login -h github.com -p https -s repo,workflow,read:org,delete_repo <"$TTY" >"$TTY" 2>"$TTY"; then
+    local t
+    t=$(gh auth token 2>/dev/null || true)
+    if [ -n "$t" ] && try_token "$t" "gh auth login"; then
+      pause
+      return 0
+    fi
+  fi
+  msg_err "Login gh gagal atau dibatalkan."
+  pause
+  return 1
+}
+
+login_manual_pat(){
+  title
+  echo "    ${C_BOLD}LOGIN MANUAL (tempel PAT)${C_RESET}"
+  echo
+  echo "    Username GitHub hanya untuk tampilan; yang menentukan akses adalah token."
+  echo
+  local u
+  u=$(ask "    GitHub username (opsional): ")
+  [ -n "$u" ] && GH_USER="$u"
+  local t
+  t=$(ask_secret "    Tempel PAT / Fine-grained token: ")
+  [ -z "$t" ] && { msg_err "Token kosong."; pause; return 1; }
+  if try_token "$t" "PAT manual"; then
+    pause
+    return 0
+  fi
+  msg_err "Token ditolak GitHub (salah, kedaluwarsa, atau scope kurang)."
+  echo "    Coba buat ulang token dengan scope 'repo', lalu login lagi."
+  pause
+  return 1
+}
+
 login(){
+  detect_env
   title
   echo "    ${C_BOLD}LOGIN GITHUB${C_RESET}"
+  echo "    Lingkungan terdeteksi: ${C_CYAN}${ENV_HINT:-$ENV_KIND}${C_RESET}"
   echo
-  echo "    Username diperlukan sebagai informasi akun."
-  echo "    Token digunakan untuk mengakses GitHub API sesuai izin yang Anda berikan."
+  echo "    Script memakai GitHub API. Username+password saja ${C_BOLD}tidak cukup${C_RESET}"
+  echo "    (kebijakan GitHub sejak 2021). Pilih salah satu cara di bawah."
   echo
-  echo "    ${C_CYAN}[T]${C_RESET} Cara membuat / melihat petunjuk token"
-  echo "    ${C_CYAN}[L]${C_RESET} Lanjut login"
+
+  # Auto try first
+  if auto_login; then
+    pause
+    return
+  fi
+  msg_info "Belum ada sesi valid. Pilih metode login:"
+  echo
+  echo "    ${C_CYAN}[1]${C_RESET} Auto-detect lagi (Codespaces token / gh session)"
+  echo "    ${C_CYAN}[2]${C_RESET} Login via GitHub CLI — browser/device code ${C_DIM}(disarankan)${C_RESET}"
+  echo "    ${C_CYAN}[3]${C_RESET} Tempel PAT manual"
+  echo "    ${C_CYAN}[4]${C_RESET} Panduan buat PAT (+ buka browser)"
   echo "    ${C_CYAN}[M]${C_RESET} Menu utama"
   echo
-  read -r -p "    Pilihan: " start
+  local start
+  start=$(ask "    Pilihan: ")
   case "$start" in
-    [Tt]) token_help; login; return;;
-    [Mm]) return;;
-    *) :;;
+    1)
+      if auto_login; then pause; return; fi
+      msg_warn "Masih belum ketemu token valid."
+      echo "    Di Codespaces: token bawaan sering terbatas ke 1 repo."
+      echo "    Solusi: pilih [2] atau [3]."
+      pause
+      login
+      ;;
+    2) login_via_gh || true ;;
+    3) login_manual_pat || true ;;
+    4) token_help; login ;;
+    [Mm]) return ;;
+    *) msg_warn "Pilihan tidak valid."; sleep 1; login ;;
   esac
-  echo
-  read -r -p "    GitHub username (opsional, identitas tampilan): " GH_USER
-  if [ -z "$TOKEN" ]; then
-    read -r -s -p "    GitHub Fine-grained token: " TOKEN; echo
-  else
-    echo "    Token sudah tersedia dari environment GITHUB_TOKEN."
-  fi
-  [ -z "$TOKEN" ] && { msg_err "Token kosong."; pause; return; }
-  local me login_name
-  me=$(api GET "/user" 2>/dev/null) || { TOKEN=""; msg_err "Login gagal. Token salah/kedaluwarsa atau koneksi bermasalah."; pause; return; }
-  login_name=$(printf '%s' "$me" | json_field login)
-  [ -z "$login_name" ] && { TOKEN=""; msg_err "GitHub tidak mengembalikan username."; pause; return; }
-  GH_USER="$login_name"
-  msg_ok "Login berhasil sebagai: $GH_USER"
-  pause
 }
 
 # ---------- Repository ----------
@@ -191,13 +333,16 @@ choose_repo(){
     if command -v jq >/dev/null 2>&1; then
       body=$(jq -r '.message // empty' "$all" 2>/dev/null)
       [ -n "$body" ] && echo "    Pesan GitHub: $body"
+    else
+      body=$(sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$all" | head -1)
+      [ -n "$body" ] && echo "    Pesan GitHub: $body"
     fi
     echo
-    echo "    Periksa Fine-grained token:"
-    echo "      • Resource owner = akun yang benar"
-    echo "      • Repository access mencakup repository yang ingin dikelola"
-    echo "      • Repository permissions → Metadata = Read-only"
-    echo "    Jika token baru saja dibuat/diubah, coba login lagi dengan token tersebut."
+    echo "    Saran perbaikan:"
+    echo "      • Codespaces: pastikan GITHUB_TOKEN punya akses repo (Settings → Codespaces secrets)"
+    echo "      • Fine-grained PAT: Metadata Read + Contents Read/Write + repo yang dituju"
+    echo "      • Classic PAT: scope 'repo' (full control of private repositories)"
+    echo "      • Login ulang (menu 1) dengan token yang benar"
     pause; return
   fi
   REPO_LINES=()
@@ -211,10 +356,10 @@ choose_repo(){
     echo "    → Fine-grained tokens → pilih token → pastikan Repository access mencakup repo Anda."
     echo
     echo "    Anda juga dapat memilih [C] untuk mencoba repository berdasarkan nama."
-    read -r -p "    C = coba nama repo / Enter = kembali: " empty_choice
+    empty_choice=$(ask "    C = coba nama repo / Enter = kembali: ")
     if [[ "$empty_choice" =~ ^[Cc]$ ]]; then
       echo
-      read -r -p "    Nama repository (contoh: cbt): " manual_repo
+      manual_repo=$(ask "    Nama repository (contoh: cbt): ")
       if [ -n "$manual_repo" ]; then
         local one
         one=$(api GET "/repos/$GH_USER/$manual_repo" 2>/dev/null) || one=""
@@ -242,7 +387,7 @@ choose_repo(){
   done
   echo
   echo "    ${C_DIM}M = menu utama${C_RESET}"
-  read -r -p "    Pilih nomor repo: " ans
+  ans=$(ask "    Pilih nomor repo: ")
   [[ "$ans" =~ ^[Mm]$ ]] && return
   [[ "$ans" =~ ^[0-9]+$ ]] || { msg_err "Pilihan tidak valid."; pause; return; }
   (( ans>=1 && ans<=${#REPO_LINES[@]} )) || { msg_err "Nomor di luar daftar."; pause; return; }
@@ -295,7 +440,7 @@ browse(){
     echo "    ${C_CYAN}Masukkan nomor FOLDER untuk masuk ke folder tersebut.${C_RESET}"
     echo "    B = naik satu folder   M = menu utama   U = upload ke folder aktif"
     echo "    R = refresh             Q = keluar"
-    read -r -p "    Pilihan: " choice
+    choice=$(ask "    Pilihan: ")
     case "$choice" in
       [Mm]) return;; [Qq]) exit 0;; [Rr]) :;; [Uu]) upload_files;; [Bb])
         if [ -z "$CURRENT_PATH" ]; then msg_info "Anda sudah berada di root repository."; sleep 1;
@@ -363,7 +508,7 @@ upload_files(){
   echo "    Pilih folder lokal yang berisi file yang ingin diupload."
   echo "    Semua file di dalamnya akan diupload secara rekursif dan struktur subfolder dipertahankan."
   echo
-  read -r -p "    Path folder lokal (contoh C:/Users/Ted/Documents/web): " localdir
+  localdir=$(ask "    Path folder lokal (contoh /workspaces/repo atau ~/project): ")
   [ -d "$localdir" ] || { msg_err "Folder lokal tidak ditemukan."; pause; return; }
   localdir=$(cd "$localdir" 2>/dev/null && pwd) || { msg_err "Tidak dapat membuka folder lokal."; pause; return; }
   mapfile -t LOCAL_FILES < <(find "$localdir" -type f -print 2>/dev/null)
@@ -372,7 +517,7 @@ upload_files(){
   echo "    Ditemukan ${#LOCAL_FILES[@]} file."
   echo "    Contoh tujuan: ${CURRENT_PATH:-/}"
   echo
-  read -r -p "    Ketik UPLOAD untuk mulai: " confirm
+  confirm=$(ask "    Ketik UPLOAD untuk mulai: ")
   [ "$confirm" = "UPLOAD" ] || { echo "    Dibatalkan."; pause; return; }
   echo
   local count=0 fail=0 f rel remote
@@ -408,7 +553,7 @@ delete_files(){
   echo
   echo "    Contoh: 1-12   atau   1, 3, 6-10, 14-22"
   echo "    M = menu utama"
-  read -r -p "    Yang akan dihapus: " sel
+  sel=$(ask "    Yang akan dihapus: ")
   [[ "$sel" =~ ^[Mm]$ ]] && return
   parse_selection "$sel" || { msg_err "Format pilihan tidak valid."; pause; return; }
   [ "${#SELECTED[@]}" -gt 0 ] || { msg_err "Tidak ada item dipilih."; pause; return; }
@@ -417,7 +562,7 @@ delete_files(){
     ((i>=1 && i<=${#ITEMS[@]})) || { msg_err "Nomor $i di luar daftar."; pause; return; }
     IFS=$'\t' read -r name typ sha p <<< "${ITEMS[$((i-1))]}"; echo "      - [$typ] $p"
   done
-  echo; read -r -p "    Ketik HAPUS untuk konfirmasi: " confirm
+  echo; confirm=$(ask "    Ketik HAPUS untuk konfirmasi: ")
   [ "$confirm" = "HAPUS" ] || { echo "    Dibatalkan."; pause; return; }
   local deleted=0
   for i in "${SELECTED[@]}"; do
@@ -440,8 +585,8 @@ delete_files(){
 # ---------- Repository administration ----------
 create_repo(){
   title; echo "    ${C_BOLD}BUAT REPOSITORY BARU${C_RESET}"; echo
-  read -r -p "    Nama repo: " name; [ -n "$name" ] || { msg_err "Nama repo kosong."; pause; return; }
-  read -r -p "    Deskripsi (opsional): " desc; read -r -p "    Private? (y/N): " yn
+  name=$(ask "    Nama repo: "); [ -n "$name" ] || { msg_err "Nama repo kosong."; pause; return; }
+  desc=$(ask "    Deskripsi (opsional): "); yn=$(ask "    Private? (y/N): ")
   local private=false; [[ "$yn" =~ ^[Yy]$ ]] && private=true
   local en descen payload
   en=$(json_escape "$name"); descen=$(json_escape "$desc")
@@ -452,8 +597,8 @@ create_repo(){
 rename_repo(){
   [ -n "$REPO_NAME" ] || { msg_err "Pilih repo dahulu."; pause; return; }
   title; echo "    ${C_BOLD}RENAME REPOSITORY${C_RESET}"; echo
-  read -r -p "    Nama baru: " new; [ -n "$new" ] || { msg_err "Nama baru kosong."; pause; return; }
-  read -r -p "    Ketik RENAME untuk konfirmasi: " c; [ "$c" = RENAME ] || { echo "    Dibatalkan."; pause; return; }
+  new=$(ask "    Nama baru: "); [ -n "$new" ] || { msg_err "Nama baru kosong."; pause; return; }
+  c=$(ask "    Ketik RENAME untuk konfirmasi: "); [ "$c" = RENAME ] || { echo "    Dibatalkan."; pause; return; }
   local payload; payload=$(printf '{"name":%s}' "$(json_escape "$new")")
   if api PATCH "/repos/$REPO_OWNER/$REPO_NAME" "$payload" >/dev/null 2>&1; then REPO_NAME="$new"; msg_ok "Repo sekarang: $REPO_OWNER/$new"; else msg_err "Gagal rename repo. Token perlu Administration: write."; fi
   pause
@@ -462,7 +607,7 @@ delete_repo(){
   [ -n "$REPO_NAME" ] || { msg_err "Pilih repo dahulu."; pause; return; }
   title; echo "    ${C_BOLD}HAPUS REPOSITORY${C_RESET}"; echo "    Target: $REPO_OWNER/$REPO_NAME"; echo
   msg_warn "GitHub akan menghapus seluruh isi dan riwayat repo."
-  read -r -p "    Ketik nama repo persis untuk konfirmasi: " c; [ "$c" = "$REPO_NAME" ] || { echo "    Dibatalkan."; pause; return; }
+  c=$(ask "    Ketik nama repo persis untuk konfirmasi: "); [ "$c" = "$REPO_NAME" ] || { echo "    Dibatalkan."; pause; return; }
   if api DELETE "/repos/$REPO_OWNER/$REPO_NAME" >/dev/null 2>&1; then REPO_NAME=""; BRANCH=""; CURRENT_PATH=""; msg_ok "Repo berhasil dihapus."; else msg_err "Gagal menghapus repo. Token perlu Administration: write."; fi
   pause
 }
@@ -472,7 +617,7 @@ pages_menu(){
   echo "    1. Aktifkan Pages dari branch aktif ($BRANCH)"
   echo "    2. Matikan Pages"
   echo "    B. Kembali"
-  read -r -p "    Pilihan: " c
+  c=$(ask "    Pilihan: ")
   case "$c" in
     1) local payload='{"source":{"branch":"'"$BRANCH"'","path":"/"}}'; if api POST "/repos/$REPO_OWNER/$REPO_NAME/pages" "$payload" >/dev/null 2>&1; then msg_ok "GitHub Pages diaktifkan."; else msg_err "Gagal. Periksa izin Pages/Administration atau konfigurasi Pages."; fi; pause;;
     2) if api DELETE "/repos/$REPO_OWNER/$REPO_NAME/pages" >/dev/null 2>&1; then msg_ok "Pages dimatikan."; else msg_err "Gagal mematikan Pages."; fi; pause;;
@@ -500,7 +645,7 @@ file_manager_menu(){
     echo "    5. Kembali ke root repository"
     echo "    M. Menu utama"
     echo
-    read -r -p "    Pilihan: " c
+    c=$(ask "    Pilihan: ")
     case "$c" in
       1|2) browse;;
       3) upload_files;;
@@ -523,7 +668,7 @@ settings_menu(){
     echo "    7. Branch"
     echo "    M. Menu utama"
     echo
-    read -r -p "    Pilihan: " c
+    c=$(ask "    Pilihan: ")
     case "$c" in
       1) choose_repo;; 2) file_manager_menu;; 3) create_repo;; 4) rename_repo;; 5) delete_repo;; 6) pages_menu;; 7) branches_menu;; [Mm]) return;; *) msg_warn "Pilihan tidak valid."; sleep 1;;
     esac
@@ -548,7 +693,7 @@ main_menu(){
     echo "    11. Bantuan token GitHub"
     echo "    0. Keluar"
     echo
-    read -r -p "    Pilihan: " c
+    c=$(ask "    Pilihan: ")
     case "$c" in
       1) login;; 2) choose_repo;; 3) file_manager_menu;; 4) delete_files;; 5) create_repo;; 6) rename_repo;; 7) delete_repo;; 8) pages_menu;; 9) branches_menu;; 10) settings_menu;; 11) token_help;; 0) exit 0;; *) msg_warn "Pilihan tidak valid."; sleep 1;;
     esac
@@ -556,4 +701,11 @@ main_menu(){
 }
 
 check_tools
+detect_env
+# Coba login diam-diam jika token/env sudah ada (Codespaces, dll.)
+if auto_login 2>/dev/null; then
+  :
+else
+  TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+fi
 main_menu
