@@ -3,7 +3,7 @@
 # ==============================================
 #  Universal Git Restore Tool
 #  Bisa dipakai di repo mana pun
-#  curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash
+#  curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh | bash
 # ==============================================
 
 set -e

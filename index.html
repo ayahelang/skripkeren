@@ -82,14 +82,45 @@ Menu:
 <li>Gunakan menu lain sesuai kebutuhan, misalnya upload folder atau aktifkan GitHub Pages.</li>
 </ol>
 </section>
- 
+
 <section>
-<h2><a href="panduan-rollback-github.html" target="_blank">5. Panduan Rollback Github Pages</a></h2>
+<h2>5. Restore / Rollback ke Commit Lama</h2>
+<p>Jika kamu salah upload file atau website jadi error, gunakan script <code>restore.sh</code> untuk mengembalikan repo ke <strong>commit</strong> (titik sejarah) sebelumnya.</p>
+
+<p><strong>Cara pakai (paling praktis):</strong></p>
+<ol>
+<li>Buka <strong>Codespaces</strong> atau terminal di folder repository yang ingin dikembalikan.</li>
+<li>Jalankan perintah berikut:</li>
+</ol>
+
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh | bash</pre>
+
+<p>atau versi lebih aman (download dulu):</p>
+
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh -o restore.sh && chmod +x restore.sh && ./restore.sh</pre>
+
+<div class="note">
+<strong>Apa yang dilakukan script ini?</strong><br>
+• Menampilkan info akun, nama repo, branch, dan commit yang sedang aktif<br>
+• Menampilkan daftar 25 commit terakhir (dengan nomor)<br>
+• Kamu tinggal pilih nomor commit yang ingin dikembalikan<br>
+• Script akan melakukan <code>git reset --hard</code> + <code>git push --force</code>
+</div>
+
+<p class="note" style="border-left: 4px solid #f5c542; padding-left: 12px;">
+⚠️ <strong>Peringatan:</strong> Force push akan menghapus commit setelah titik yang dipilih. Pastikan kamu yakin sebelum mengetik <code>YA</code>.
+</p>
+
+<p>Untuk panduan rollback yang lebih lengkap (cara website + Git Bash manual), lihat:</p>
+<p><a href="panduan-rollback-github.html" target="_blank">→ Panduan Rollback GitHub Pages (lengkap)</a></p>
 </section>
- 
-<p>Coba juga install Google Chrome di Linux Bookworm Puppy dg perintah berikut:</p>
+
+<section>
+<h2>6. Lainnya</h2>
+<p>Coba juga install Google Chrome di Linux Bookworm Puppy dengan perintah berikut:</p>
 
 <pre><button class="copy-btn">Copy</button>bash &lt;(curl -s https://silverhawk.web.id/skripkeren/install_chrome_bookworm_puppy.sh)</pre>
+</section>
 
 <footer>
 &copy; 2025 — Dokumentasi <code>t-rm7.sh</code> | Repo: ayahelang/skripkeren
