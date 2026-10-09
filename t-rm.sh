@@ -6,7 +6,7 @@ set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.8"
+VER="0.4.9"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -220,58 +220,58 @@ wizard_create_pat(){
   title
   echo "    ${C_BOLD}WIZARD BUAT PERSONAL ACCESS TOKEN${C_RESET}"
   echo
-  echo "    Isi data di bawah. Script akan membuka halaman GitHub yang tepat,"
-  echo "    lalu Anda salin token yang muncul dan tempel di sini."
+
+  # --- Link & panduan DULUAN (sebelum input) ---
+  local default_url="https://github.com/settings/tokens/new?description=silverhawk-upload&scopes=repo"
+  echo "    ${C_BOLD}LANGKAH CEPAT:${C_RESET}"
+  echo "      1. Buka link di bawah (Ctrl+klik / Cmd+klik)"
+  echo "      2. Login GitHub jika diminta"
+  echo "      3. Centang scope ${C_CYAN}repo${C_RESET}"
+  echo "      4. Klik ${C_BOLD}Generate token${C_RESET}"
+  echo "      5. Copy token ${C_YELLOW}ghp_....${C_RESET} (hanya tampil sekali)"
+  echo "      6. Kembali ke terminal ini, isi form singkat, lalu tempel token"
+  echo
+  open_url "$default_url"
+  echo "    ${C_DIM}Link alternatif Fine-grained:${C_RESET}"
+  echo "    https://github.com/settings/personal-access-tokens/new"
+  echo
+  echo "    ────────────────────────────────────────────────────────"
+  echo "    Isi data di bawah (boleh Enter = pakai default), lalu tempel token."
   echo
 
   local note_name repo_hint kind
-  note_name=$(ask "    1) Nama token (contoh: silverhawk-upload): ")
-  [ -z "$note_name" ] && note_name="silverhawk-autocli"
+  note_name=$(ask "    1) Nama token [silverhawk-upload]: ")
+  [ -z "$note_name" ] && note_name="silverhawk-upload"
 
   echo
   echo "    2) Jenis token:"
-  echo "       [1] Classic PAT (paling mudah, akses semua repo) ${C_DIM}— disarankan${C_RESET}"
-  echo "       [2] Fine-grained (hanya repo tertentu)"
-  kind=$(ask "    Pilih 1 atau 2: ")
+  echo "       [1] Classic PAT (paling mudah) ${C_DIM}— default / disarankan${C_RESET}"
+  echo "       [2] Fine-grained (repo tertentu)"
+  kind=$(ask "    Pilih 1 atau 2 [1]: ")
   [ -z "$kind" ] && kind="1"
 
-  repo_hint=$(ask "    3) Nama repo yang perlu write (contoh: darulistiqomah): ")
+  repo_hint=$(ask "    3) Repo yang perlu write [darulistiqomah]: ")
   [ -z "$repo_hint" ] && repo_hint="${REPO_NAME:-darulistiqomah}"
 
   echo
-  echo "    ${C_BOLD}Ringkasan:${C_RESET}"
-  echo "      Nama token : $note_name"
-  echo "      Jenis      : $([ "$kind" = "2" ] && echo Fine-grained || echo Classic)"
-  echo "      Repo target: $repo_hint"
-  echo
-  echo "    Langkah di browser sebentar lagi:"
-  if [ "$kind" = "2" ]; then
-    echo "      • Generate fine-grained token"
-    echo "      • Repository access → Only select → pilih: $repo_hint"
-    echo "      • Permissions → Contents: Read and write"
-    echo "      • Metadata: Read-only"
-    echo "      • Generate token → COPY"
-    open_url "https://github.com/settings/personal-access-tokens/new"
-  else
-    echo "      • Generate new token (classic)"
-    echo "      • Note: $note_name"
-    echo "      • Centang scope: ${C_CYAN}repo${C_RESET}"
-    echo "      • Generate token → COPY (hanya tampil sekali)"
-    open_url "https://github.com/settings/tokens/new?description=$(urlenc "$note_name")&scopes=repo"
-  fi
-  echo
-  msg_info "Gunakan link/URL di atas (Ctrl+klik di Codespaces)."
-  echo "    Di halaman GitHub:"
-  echo "      1. Note diisi (sudah bisa otomatis di URL)"
-  echo "      2. Centang scope ${C_BOLD}repo${C_RESET} (untuk Classic)"
-  echo "      3. Klik Generate token"
-  echo "      4. Copy token (ghp_....) — hanya tampil sekali"
-  echo
-  echo "    Lalu tempel token di bawah ini."
+  echo "    ${C_BOLD}Ringkasan:${C_RESET}  $note_name  |  $([ "$kind" = "2" ] && echo Fine-grained || echo Classic)  |  repo: $repo_hint"
   echo
 
+  # Buka ulang URL yang lebih spesifik setelah user isi nama
+  if [ "$kind" = "2" ]; then
+    echo "    Untuk Fine-grained, buka lagi link ini lalu atur repo + Contents: Read and write:"
+    open_url "https://github.com/settings/personal-access-tokens/new"
+  else
+    local url
+    url="https://github.com/settings/tokens/new?description=$(urlenc "$note_name")&scopes=repo"
+    echo "    Link Classic dengan nama token Anda:"
+    open_url "$url"
+  fi
+
+  echo "    Setelah Generate token di browser, tempel di sini:"
+  echo
   local t
-  t=$(ask_secret "    Tempel PAT (ghp_...) di sini: ")
+  t=$(ask_secret "    Tempel PAT (ghp_...) : ")
   if [ -z "$t" ]; then
     msg_err "Token kosong. Wizard dibatalkan."
     pause
@@ -280,11 +280,11 @@ wizard_create_pat(){
   TOKEN=""
   GH_USER=""
   if try_token "$t" "PAT wizard"; then
-    msg_ok "Token aktif. Siap upload ke repo (termasuk $repo_hint jika scope cukup)."
+    msg_ok "Token aktif. Silakan pilih repo lalu upload."
     pause
     return 0
   fi
-  msg_err "Token ditolak GitHub. Cek scope/repo access, buat ulang, coba lagi."
+  msg_err "Token ditolak GitHub. Cek scope repo, generate ulang, coba lagi."
   pause
   return 1
 }
