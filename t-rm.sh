@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Silverhawk AutoCLI v0.2
 # GitHub repository/file manager
-# Online (Codespaces OK): bash <(curl -fsSL https://silverhawk.web.id/skripkeren/t-rm.sh)
+# Online (Codespaces OK): bash <(curl -fsSL https://skripkeren.silverhawk.web.id/t-rm.sh)
 set -u
 set -o pipefail
 
 APP="Silverhawk AutoCLI"
-VER="0.4.9"
+VER="0.5.0"
 API="https://api.github.com"
 TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 GH_USER="${GITHUB_USER:-}"
@@ -240,6 +240,7 @@ wizard_create_pat(){
   echo
 
   local note_name repo_hint kind
+  echo "    ${C_DIM}Nama token BEBAS (hanya label di GitHub, bukan kode rahasia).${C_RESET}"
   note_name=$(ask "    1) Nama token [silverhawk-upload]: ")
   [ -z "$note_name" ] && note_name="silverhawk-upload"
 
@@ -292,7 +293,7 @@ wizard_create_pat(){
 login_via_gh(){
   if ! command -v gh >/dev/null 2>&1; then
     msg_err "GitHub CLI (gh) belum terpasang."
-    echo "    Install: bash <(curl -fsSL https://silverhawk.web.id/skripkeren/installgitcli.sh)"
+    echo "    Install: bash <(curl -fsSL https://skripkeren.silverhawk.web.id/installgitcli.sh)"
     pause
     return 1
   fi

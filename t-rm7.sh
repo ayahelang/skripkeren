@@ -16,7 +16,7 @@ NC='\033[0m' # reset
 if ! command -v gh >/dev/null 2>&1; then
     echo -e "\033[0;31m❌ GitHub CLI (gh) belum terpasang.\033[0m"
     echo "Install dulu dengan:"
-    echo "  sh <(curl -s https://silverhawk.web.id/skripkeren/installgitcli.sh)"
+    echo "  sh <(curl -s https://skripkeren.silverhawk.web.id/installgitcli.sh)"
     exit 1
 fi
 if ! command -v curl >/dev/null 2>&1; then

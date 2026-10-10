@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================
 #  Universal Git Restore Tool
-#  curl -fsSL https://silverhawk.web.id/skripkeren/restore.sh | bash
+#  curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash
 # ==============================================
 
 set -e
