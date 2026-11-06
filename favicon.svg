@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Skripkeren">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded app icon -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- terminal window -->
+  <rect x="10" y="14" width="44" height="36" rx="6" fill="#0f172a"/>
+  <!-- title bar dots -->
+  <circle cx="18" cy="22" r="2.2" fill="#f87171"/>
+  <circle cx="25" cy="22" r="2.2" fill="#fbbf24"/>
+  <circle cx="32" cy="22" r="2.2" fill="#34d399"/>
+  <!-- prompt -->
+  <text x="16" y="38" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+        font-size="12" font-weight="700" fill="#93c5fd">&gt;_</text>
+  <text x="30" y="38" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+        font-size="11" font-weight="600" fill="#e2e8f0">sk</text>
+  <!-- cursor blink bar -->
+  <rect x="46" y="30" width="2.5" height="10" rx="1" fill="#60a5fa"/>
+</svg>
