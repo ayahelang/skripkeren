@@ -100,18 +100,55 @@ Konfirmasi wajib ketik <code>YA</code> sebelum <code>reset --hard</code> + <code
 </section>
 
 <section>
-<h2>5. Installer lain</h2>
+<h2>5. Urus Repo — <code>urusrepo.sh</code></h2>
+<p>
+Script interaktif untuk membersihkan repo, rename massal file (web-safe),
+dan menyamakan isi lokal ↔ GitHub.
+Otomatis menyesuaikan lingkungan: <strong>Codespaces</strong> atau <strong>Git Bash / desktop</strong>.
+</p>
+<p><em>Developed by James What</em></p>
+
+<p><strong>Jalankan di mana saja</strong> (Codespaces / Git Bash / terminal):</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh)</pre>
+
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh -o urusrepo.sh && chmod +x urusrepo.sh && bash urusrepo.sh</pre>
+
+<h3>Perilaku per lingkungan</h3>
+<ul>
+<li><strong>Codespaces</strong> — langsung menu; repo aktif = folder Codespaces saat ini</li>
+<li><strong>Git Bash / desktop</strong> — wizard login (username + PAT), pilih nomor repo dari daftar, lalu menu</li>
+</ul>
+
+<h3>Menu utama</h3>
+<ol>
+<li><strong>Kosongkan isi repo</strong> — hapus semua di root kecuali <code>CNAME</code>, file <code>*.sh</code>, dan exclude opsional yang Anda ketik</li>
+<li><strong>Rename massal folder</strong> — spasi→underscore, pecah CamelCase, lowercase, buang karakter khusus; bentrok dilengkapi nomor leading zero. Bisa juga pakai nama dasar kustom + nomor</li>
+<li><strong>Samakan lokal ← GitHub</strong> — <code>fetch</code> + <code>reset --hard</code> ke origin (perubahan lokal belum di-push bisa hilang)</li>
+<li><strong>Samakan GitHub ← lokal</strong> — <code>git add -A</code> + commit + push</li>
+<li><strong>Ganti / pilih repo</strong> — ulangi wizard login</li>
+</ol>
+
+<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
+⚠️ Menu kosongkan &amp; reset bersifat merusak data lokal — selalu ada konfirmasi <code>y/N</code>.
+Pakai <strong>Personal Access Token (PAT)</strong> scope <code>repo</code>, bukan password akun GitHub.
+</div>
+</section>
+
+<section>
+<h2>6. Installer lain</h2>
 <p>Install Google Chrome di Linux Bookworm / Puppy:</p>
 <pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/install_chrome_bookworm_puppy.sh)</pre>
 </section>
 
 <section>
-<h2>6. Daftar file aktif</h2>
+<h2>7. Daftar file aktif</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
 <tr><th align="left">File</th><th align="left">Fungsi</th></tr>
 <tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI v0.4 — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
+<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename massal, sync lokal ↔ GitHub (Codespaces &amp; Git Bash)</td></tr>
 <tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
 <tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
 </table>
