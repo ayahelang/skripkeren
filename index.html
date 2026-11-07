@@ -164,17 +164,32 @@ Pakai <strong>Personal Access Token (PAT)</strong> scope <code>repo</code>, buka
 </section>
 
 <section>
-<h2>6. Reveal Password WiFi — <code>wifi-pass.ps1</code></h2>
-<p>Menampilkan password WiFi yang sedang terhubung di Windows (PowerShell).</p>
+<h2>6. Reveal Password WiFi</h2>
+<p>Menampilkan password WiFi yang sudah pernah terhubung &amp; tersimpan.</p>
 
-<p><strong>Jalankan di PowerShell (sebagai Administrator):</strong></p>
+<h3>Windows — <code>wifi-pass.ps1</code></h3>
+<p>PowerShell (disarankan jalankan sebagai <strong>Administrator</strong>):</p>
 <pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 | iex</pre>
 
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 -OutFile wifi-pass.ps1
-.\wifi-pass.ps1</pre>
+<p>Dari <strong>CMD</strong> (as Administrator):</p>
+<pre><button class="copy-btn">Copy</button>powershell -ExecutionPolicy Bypass -Command "irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 | iex"</pre>
 
-<div class="note">💡 Jalankan PowerShell <strong>sebagai Administrator</strong> agar bisa membaca Key Content.</div>
+<p>Atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 -OutFile wifi-pass.ps1
+powershell -ExecutionPolicy Bypass -File .\wifi-pass.ps1</pre>
+
+<div class="note">Menampilkan password WiFi aktif + daftar semua profil tersimpan yang bisa dipilih.</div>
+
+<h3>Linux / Termux / Android — <code>wifi-pass.sh</code></h3>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/wifi-pass.sh)</pre>
+
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/wifi-pass.sh -o wifi-pass.sh
+chmod +x wifi-pass.sh && ./wifi-pass.sh</pre>
+
+<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
+⚠️ Di <strong>Android</strong> butuh <strong>root</strong> untuk membaca password. Tanpa root hanya bisa melihat SSID yang sedang terhubung (jika tersedia). Di Linux biasa biasanya butuh <code>sudo</code>.
+</div>
 </section>
 
 <section>
@@ -191,7 +206,8 @@ Pakai <strong>Personal Access Token (PAT)</strong> scope <code>repo</code>, buka
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
 <tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename massal, sync lokal ↔ GitHub (Codespaces &amp; Git Bash)</td></tr>
-<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi yang sedang terhubung (Windows PowerShell)</td></tr>
+<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows PowerShell / CMD)</td></tr>
+<tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux / Android — butuh root di Android)</td></tr>
 <tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
 <tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
 </table>
