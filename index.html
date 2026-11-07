@@ -164,19 +164,34 @@ Pakai <strong>Personal Access Token (PAT)</strong> scope <code>repo</code>, buka
 </section>
 
 <section>
-<h2>6. Installer lain</h2>
+<h2>6. Reveal Password WiFi — <code>wifi-pass.ps1</code></h2>
+<p>Menampilkan password WiFi yang sedang terhubung di Windows (PowerShell).</p>
+
+<p><strong>Jalankan di PowerShell (sebagai Administrator):</strong></p>
+<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 | iex</pre>
+
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 -OutFile wifi-pass.ps1
+.\wifi-pass.ps1</pre>
+
+<div class="note">💡 Jalankan PowerShell <strong>sebagai Administrator</strong> agar bisa membaca Key Content.</div>
+</section>
+
+<section>
+<h2>7. Installer lain</h2>
 <p>Install Google Chrome di Linux Bookworm / Puppy:</p>
 <pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/install_chrome_bookworm_puppy.sh)</pre>
 </section>
 
 <section>
-<h2>7. Daftar file aktif</h2>
+<h2>8. Daftar file aktif</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
 <tr><th align="left">File</th><th align="left">Fungsi</th></tr>
 <tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI v0.4 — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
 <tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename massal, sync lokal ↔ GitHub (Codespaces &amp; Git Bash)</td></tr>
+<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi yang sedang terhubung (Windows PowerShell)</td></tr>
 <tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
 <tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
 </table>
