@@ -420,9 +420,11 @@ menu_sync_to_github() {
   need_git
   git status -sb || true
   echo
+  warn "Mode ini memakai git add -A → file yang hilang di lokal AKAN dihapus di GitHub."
+  echo
   read -r -p "Pesan commit [update via urusrepo.sh]: " msg
   msg="${msg:-update via urusrepo.sh}"
-  confirm "Add semua + commit + push?" || { warn "Dibatalkan."; pause; return; }
+  confirm "Add semua + commit + push (termasuk penghapusan)?" || { warn "Dibatalkan."; pause; return; }
 
   git add -A
   if git diff --cached --quiet 2>/dev/null; then
@@ -442,6 +444,63 @@ menu_sync_to_github() {
   pause
 }
 
+# ---------- 6) upload lokal → GitHub TANPA menghapus file remote ----------
+menu_upload_keep_remote() {
+  header
+  echo -e "${BOLD}[6] Upload lokal → GitHub (tanpa hapus file remote)${NC}"
+  echo
+  need_git
+  echo -e "Mode ini akan:"
+  echo "  • Menambahkan file/folder baru dari lokal"
+  echo "  • Memperbarui file yang sudah ada (isi berubah)"
+  echo "  • ${GREEN}TIDAK menghapus${NC} file/folder yang ada di GitHub tapi tidak ada di lokal"
+  echo
+  git status -sb || true
+  echo
+  read -r -p "Pesan commit [upload via urusrepo.sh (keep remote)]: " msg
+  msg="${msg:-upload via urusrepo.sh (keep remote)}"
+  confirm "Upload + commit + push (tanpa hapus file remote)?" || { warn "Dibatalkan."; pause; return; }
+
+  # Stage new + modified only; jangan stage deletion
+  # git add --all --ignore-removal (tersedia sejak git 1.8+)
+  if git add --all --ignore-removal 2>/dev/null; then
+    :
+  else
+    # Fallback untuk git lama: add semua yang ada, lalu unstage deletion
+    git add -A 2>/dev/null || git add .
+    # Unstage file yang terhapus di working tree
+    local deleted
+    deleted=$(git diff --cached --name-only --diff-filter=D 2>/dev/null || true)
+    if [[ -n "$deleted" ]]; then
+      while IFS= read -r f; do
+        [[ -n "$f" ]] && git reset HEAD -- "$f" >/dev/null 2>&1 || true
+      done <<< "$deleted"
+      info "Penghapusan file remote dibatalkan (tetap dipertahankan di GitHub)."
+    fi
+  fi
+
+  if git diff --cached --quiet 2>/dev/null; then
+    warn "Tidak ada file baru/berubah untuk di-upload."
+  else
+    echo
+    info "File yang akan di-commit:"
+    git diff --cached --name-status | sed 's/^/  /' || true
+    echo
+    git commit -m "$msg" || warn "commit gagal"
+  fi
+
+  local br
+  br=$(current_branch)
+  info "Push ke origin/${br}…"
+  if [[ -n "${GH_TOKEN:-}" && -n "${GH_USER:-}" && -n "${ACTIVE_REPO:-}" ]]; then
+    git push "https://${GH_USER}:${GH_TOKEN}@github.com/${ACTIVE_REPO}.git" "HEAD:refs/heads/${br}" || die "push gagal"
+  else
+    git push origin "HEAD:refs/heads/${br}" || die "push gagal (cek auth git)"
+  fi
+  ok "Upload selesai. File yang hanya ada di GitHub tetap utuh."
+  pause
+}
+
 # ---------- menu utama ----------
 main_menu() {
   while true; do
@@ -450,11 +509,12 @@ main_menu() {
     echo "  1) Kosongkan isi repo (kecuali CNAME, *.sh, + exclude opsional)"
     echo "  2) Rename massal file di folder (aturan web-safe + nomor)"
     echo "  3) Samakan lokal  ←  GitHub   (fetch + reset hard)"
-    echo "  4) Samakan GitHub ←  lokal    (add + commit + push)"
+    echo "  4) Samakan GitHub ←  lokal    (add + commit + push, TERMASUK hapus)"
     echo "  5) Ganti / pilih repo lagi (wizard login)"
+    echo "  6) Upload lokal → GitHub     (tanpa hapus file yang hanya ada di remote)"
     echo "  0) Keluar"
     echo
-    read -r -p "Pilih [0-5]: " choice || true
+    read -r -p "Pilih [0-6]: " choice || true
     case "${choice}" in
       1) menu_empty_repo ;;
       2) menu_rename_folder ;;
@@ -469,6 +529,7 @@ main_menu() {
           wizard_login
         fi
         ;;
+      6) menu_upload_keep_remote ;;
       0) echo; ok "Selesai. Developed by James What"; exit 0 ;;
       *) warn "Pilihan tidak valid."; sleep 1 ;;
     esac

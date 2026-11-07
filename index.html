@@ -153,8 +153,9 @@ Otomatis menyesuaikan lingkungan: <strong>Codespaces</strong> atau <strong>Git B
 <li><strong>Kosongkan isi repo</strong> — hapus semua di root kecuali <code>CNAME</code>, file <code>*.sh</code>, dan exclude opsional yang Anda ketik</li>
 <li><strong>Rename massal folder</strong> — spasi→underscore, pecah CamelCase, lowercase, buang karakter khusus; bentrok dilengkapi nomor leading zero. Bisa juga pakai nama dasar kustom + nomor</li>
 <li><strong>Samakan lokal ← GitHub</strong> — <code>fetch</code> + <code>reset --hard</code> ke origin (perubahan lokal belum di-push bisa hilang)</li>
-<li><strong>Samakan GitHub ← lokal</strong> — <code>git add -A</code> + commit + push</li>
+<li><strong>Samakan GitHub ← lokal</strong> — <code>git add -A</code> + commit + push <em>(termasuk menghapus file yang tidak ada di lokal)</em></li>
 <li><strong>Ganti / pilih repo</strong> — ulangi wizard login</li>
+<li><strong>Upload lokal → GitHub (keep remote)</strong> — tambah &amp; update file dari lokal, <strong>tanpa menghapus</strong> file/folder yang hanya ada di GitHub</li>
 </ol>
 
 <div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
@@ -205,7 +206,7 @@ chmod +x wifi-pass.sh && ./wifi-pass.sh</pre>
 <tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI v0.4 — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
-<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename massal, sync lokal ↔ GitHub (Codespaces &amp; Git Bash)</td></tr>
+<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename, sync, + upload tanpa hapus file remote (Codespaces &amp; Git Bash)</td></tr>
 <tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows PowerShell / CMD)</td></tr>
 <tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux / Android — butuh root di Android)</td></tr>
 <tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
