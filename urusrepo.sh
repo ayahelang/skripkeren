@@ -317,12 +317,26 @@ menu_rename_folder() {
   echo
   read -r -p "Nama dasar kustom (kosong = pakai aturan default per file): " custom_base
 
-  # kumpulkan file (bukan folder)
+  info "Memindai file di ${folder}…"
+  # Kumpulkan file tanpa sort -z (sering lambat/aneh di Git Bash)
   local -a files=()
   local f
-  while IFS= read -r -d '' f; do
-    files+=("$f")
-  done < <(find "$folder" -maxdepth 1 -type f -print0 | sort -z)
+  # null-delimited find; sort by name via plain sort after
+  local tmp_find
+  tmp_find=$(mktemp 2>/dev/null || echo "./.urusrepo-find-$$.txt")
+  find "$folder" -maxdepth 1 -type f -printf '%f\t%p\n' 2>/dev/null | LC_ALL=C sort > "$tmp_find" \
+    || find "$folder" -maxdepth 1 -type f -print 2>/dev/null | LC_ALL=C sort > "$tmp_find"
+  while IFS= read -r line || [[ -n "${line:-}" ]]; do
+    [[ -z "${line:-}" ]] && continue
+    # format: name\tpath  OR plain path
+    if [[ "$line" == *$'\t'* ]]; then
+      f="${line#*$'\t'}"
+    else
+      f="$line"
+    fi
+    [[ -f "$f" ]] && files+=("$f")
+  done < "$tmp_find"
+  rm -f "$tmp_find" 2>/dev/null || true
 
   local count=${#files[@]}
   if (( count == 0 )); then
@@ -334,41 +348,20 @@ menu_rename_folder() {
   local width
   width=$(pad_width_for "$count")
   info "Ditemukan $count file. Lebar nomor: $width digit."
-  echo
-  echo "Pratinjau (10 pertama):"
-  local i=0
-  local base ext stem newstem newname dir
-  for f in "${files[@]}"; do
-    ((i++)) || true
-    dir=$(dirname "$f")
-    base=$(basename "$f")
-    if [[ "$base" == *.* ]]; then
-      ext=".${base##*.}"
-      stem="${base%.*}"
-    else
-      ext=""
-      stem="$base"
-    fi
-    ext=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
-    if [[ -n "$custom_base" ]]; then
-      newstem=$(sanitize_stem "$custom_base")
-      newstem=$(printf "%s_%0${width}d" "$newstem" "$i")
-    else
-      newstem=$(sanitize_stem "$stem")
-    fi
-    newname="${newstem}${ext}"
-    if (( i <= 10 )); then
-      printf "  %s  →  %s\n" "$base" "$newname"
-    fi
-  done
-  (( count > 10 )) && echo "  … dan $((count - 10)) file lainnya"
-  echo
-  confirm "Terapkan rename?" || { warn "Dibatalkan."; pause; return; }
 
-  # dua tahap: rename ke temp dulu agar tidak bentrok
-  i=0
-  local -a plan_src=() plan_dst=()
-  declare -A used=()
+  # sanitize nama dasar sekali saja (bukan 78x)
+  local custom_stem=""
+  if [[ -n "$custom_base" ]]; then
+    custom_stem=$(sanitize_stem "$custom_base")
+  fi
+
+  # Bangun rencana rename SEKALI
+  info "Menyusun rencana rename…"
+  local i=0
+  local base ext stem newstem dir candidate n
+  local -a plan_src=() plan_dst=() plan_show=()
+  declare -A used=() 2>/dev/null || true
+
   for f in "${files[@]}"; do
     ((i++)) || true
     dir=$(dirname "$f")
@@ -380,39 +373,70 @@ menu_rename_folder() {
       ext=""
       stem="$base"
     fi
+    # lowercase extension tanpa subshell berantai
     ext=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
-    if [[ -n "$custom_base" ]]; then
-      newstem=$(sanitize_stem "$custom_base")
-      newstem=$(printf "%s_%0${width}d" "$newstem" "$i")
+    if [[ -n "$custom_stem" ]]; then
+      newstem=$(printf "%s_%0${width}d" "$custom_stem" "$i")
     else
       newstem=$(sanitize_stem "$stem")
     fi
-    # unique
-    local candidate="${newstem}${ext}"
-    local n=1
-    while [[ -n "${used[$candidate]+x}" ]]; do
+    candidate="${newstem}${ext}"
+    n=1
+    # hindari bentrok nama
+    while [[ -e "$dir/$candidate" && "$dir/$candidate" != "$f" ]] || [[ -n "${used[$candidate]+x}" ]]; do
       candidate=$(printf "%s_%0${width}d%s" "$newstem" "$n" "$ext")
       ((n++)) || true
+      (( n > 9999 )) && break
     done
     used["$candidate"]=1
     plan_src+=("$f")
     plan_dst+=("$dir/$candidate")
+    plan_show+=("$base  →  $candidate")
   done
 
-  # tahap 1: ke nama sementara
+  echo
+  echo "Pratinjau (10 pertama):"
+  i=0
+  for s in "${plan_show[@]}"; do
+    ((i++)) || true
+    if (( i <= 10 )); then
+      printf "  %s\n" "$s"
+    fi
+  done
+  (( count > 10 )) && echo "  … dan $((count - 10)) file lainnya"
+  echo
+  # flush prompt segera
+  printf "Terapkan rename %s file? [y/N] " "$count"
+  local ans=""
+  read -r ans || true
+  if [[ "${ans,,}" != "y" && "${ans,,}" != "yes" ]]; then
+    warn "Dibatalkan."
+    pause
+    return
+  fi
+
+  # dua tahap: temp dulu agar tidak menimpa
+  info "Tahap 1/2: nama sementara…"
   i=0
   for f in "${plan_src[@]}"; do
     local tmp="$folder/.urusrepo_tmp_$$_$i"
-    mv -f "$f" "$tmp"
+    mv -f "$f" "$tmp" || { err "Gagal mv: $f"; pause; return; }
     plan_src[$i]="$tmp"
     ((i++)) || true
+    # progress tiap 20 file
+    if (( i % 20 == 0 )); then
+      printf "  … %s/%s\n" "$i" "$count"
+    fi
   done
-  # tahap 2: ke nama final
+
+  info "Tahap 2/2: nama final…"
   i=0
   for tmp in "${plan_src[@]}"; do
-    mv -f "$tmp" "${plan_dst[$i]}"
-    ok "$(basename "${plan_dst[$i]}")"
+    mv -f "$tmp" "${plan_dst[$i]}" || { err "Gagal mv → ${plan_dst[$i]}"; pause; return; }
     ((i++)) || true
+    if (( i % 20 == 0 || i == count )); then
+      printf "  … %s/%s\n" "$i" "$count"
+    fi
   done
 
   ok "Rename selesai ($count file)."
