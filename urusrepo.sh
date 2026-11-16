@@ -510,36 +510,97 @@ menu_upload_keep_remote() {
   echo "  • Memperbarui file yang sudah ada (isi berubah)"
   echo "  • ${GREEN}TIDAK menghapus${NC} file/folder yang ada di GitHub tapi tidak ada di lokal"
   echo
+  info "Status saat ini:"
   git status -sb || true
   echo
-  read -r -p "Pesan commit [upload via urusrepo.sh (keep remote)]: " msg
-  msg="${msg:-upload via urusrepo.sh (keep remote)}"
-  confirm "Upload + commit + push (tanpa hapus file remote)?" || { warn "Dibatalkan."; pause; return; }
 
-  # Stage new + modified only; jangan stage deletion
-  # git add --all --ignore-removal (tersedia sejak git 1.8+)
-  if git add --all --ignore-removal 2>/dev/null; then
-    :
-  else
-    # Fallback untuk git lama: add semua yang ada, lalu unstage deletion
-    git add -A 2>/dev/null || git add .
-    # Unstage file yang terhapus di working tree
-    local deleted
-    deleted=$(git diff --cached --name-only --diff-filter=D 2>/dev/null || true)
-    if [[ -n "$deleted" ]]; then
-      while IFS= read -r f; do
-        [[ -n "$f" ]] && git reset HEAD -- "$f" >/dev/null 2>&1 || true
-      done <<< "$deleted"
-      info "Penghapusan file remote dibatalkan (tetap dipertahankan di GitHub)."
+  # Tunjukkan untracked agar user yakin
+  local untracked_count=0
+  untracked_count=$(git ls-files -o --exclude-standard | wc -l | tr -d ' ')
+  info "File untracked (belum di-git): ${untracked_count}"
+  if [[ "${untracked_count}" -gt 0 ]]; then
+    git ls-files -o --exclude-standard | head -n 30 | sed 's/^/  + /'
+    if [[ "${untracked_count}" -gt 30 ]]; then
+      echo "  … dan $((untracked_count - 30)) lainnya"
     fi
   fi
+  echo
+
+  read -r -p "Pesan commit [upload via urusrepo.sh (keep remote)]: " msg
+  msg="${msg:-upload via urusrepo.sh (keep remote)}"
+  printf "Upload + commit + push (tanpa hapus file remote)? [y/N] "
+  local ans=""
+  read -r ans || true
+  if [[ "${ans,,}" != "y" && "${ans,,}" != "yes" ]]; then
+    warn "Dibatalkan."
+    pause
+    return
+  fi
+
+  info "Staging file baru & yang berubah (deletion di-skip)…"
+
+  # 1) Untracked files (eksplisit — andal di Git Bash/Windows)
+  local f n_add=0 n_fail=0
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if git add -- "$f" 2>/dev/null; then
+      ((n_add++)) || true
+    else
+      ((n_fail++)) || true
+      warn "Gagal add: $f"
+    fi
+    if (( n_add % 50 == 0 && n_add > 0 )); then
+      printf "  … staged %s file\n" "$n_add"
+    fi
+  done < <(git ls-files -o --exclude-standard)
+
+  # 2) Modified / added tracked (bukan deleted)
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if git add -- "$f" 2>/dev/null; then
+      ((n_add++)) || true
+    else
+      ((n_fail++)) || true
+      warn "Gagal add (modified): $f"
+    fi
+  done < <(git diff --name-only --diff-filter=ACMR 2>/dev/null)
+
+  # 3) Cadangan: coba add folder images bila masih ada untracked di dalamnya
+  if [[ -d images ]]; then
+    git add -- images 2>/dev/null || true
+  fi
+
+  # 4) Pastikan tidak ada deletion di index
+  local deleted
+  deleted=$(git diff --cached --name-only --diff-filter=D 2>/dev/null || true)
+  if [[ -n "$deleted" ]]; then
+    while IFS= read -r f; do
+      [[ -n "$f" ]] && git reset HEAD -- "$f" >/dev/null 2>&1 || true
+    done <<< "$deleted"
+    info "Deletion di-unstage (file remote tetap dipertahankan)."
+  fi
+
+  echo
+  info "Ringkasan stage: ~${n_add} add attempt, ${n_fail} gagal"
+  git status -sb || true
+  echo
 
   if git diff --cached --quiet 2>/dev/null; then
     warn "Tidak ada file baru/berubah untuk di-upload."
+    echo
+    echo "Troubleshooting cepat:"
+    echo "  1) git check-ignore -v path/ke/file.jpg   # apakah di-ignore?"
+    echo "  2) git ls-files -o --exclude-standard | head"
+    echo "  3) Pastikan file bukan di folder repo lain / submodule"
+    echo
+    info "Mencoba push saja (jika ada commit lokal yang belum di-push)…"
   else
     echo
-    info "File yang akan di-commit:"
-    git diff --cached --name-status | sed 's/^/  /' || true
+    info "File yang akan di-commit (maks 40 baris):"
+    git diff --cached --name-status | head -n 40 | sed 's/^/  /' || true
+    local staged_n
+    staged_n=$(git diff --cached --name-only | wc -l | tr -d ' ')
+    echo "  Total staged: ${staged_n}"
     echo
     git commit -m "$msg" || warn "commit gagal"
   fi
@@ -548,7 +609,8 @@ menu_upload_keep_remote() {
   br=$(current_branch)
   info "Push ke origin/${br}…"
   if [[ -n "${GH_TOKEN:-}" && -n "${GH_USER:-}" && -n "${ACTIVE_REPO:-}" ]]; then
-    git push "https://${GH_USER}:${GH_TOKEN}@github.com/${ACTIVE_REPO}.git" "HEAD:refs/heads/${br}" || die "push gagal"
+    git push "https://${GH_USER}:${GH_TOKEN}@github.com/${ACTIVE_REPO}.git" "HEAD:refs/heads/${br}" \
+      || die "push gagal (cek token scope repo)"
   else
     git push origin "HEAD:refs/heads/${br}" || die "push gagal (cek auth git)"
   fi
