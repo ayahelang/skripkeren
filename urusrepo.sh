@@ -123,24 +123,55 @@ wizard_login() {
     "https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner" 2>/dev/null) \
     || die "Gagal login / ambil repo. Cek username & token."
 
-  if ! command -v python3 >/dev/null 2>&1 && ! command -v python >/dev/null 2>&1; then
-    die "python3 diperlukan untuk parse daftar repo."
+  # Pilih Python yang BENAR-BENAR jalan (hindari alias Microsoft Store "python3")
+  local PY=""
+  if command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
+    PY=python
+  elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
+    PY=python3
+  else
+    die "Python tidak tersedia. Di Windows: install Python dari python.org dan matikan App execution aliases python3 di Settings."
   fi
-  local PY=python3
-  command -v python3 >/dev/null 2>&1 || PY=python
+  info "Parser: ${PY} ($($PY -c 'import sys; print(sys.version.split()[0])' 2>/dev/null || echo '?'))"
 
-  mapfile -t REPO_LIST < <(echo "$api_resp" | $PY -c '
+  # Parse via file sementara (lebih andal di Git Bash daripada mapfile + process substitution)
+  local tmp_json tmp_list
+  tmp_json=$(mktemp 2>/dev/null || echo "./.urusrepo-repos-$$.json")
+  tmp_list=$(mktemp 2>/dev/null || echo "./.urusrepo-list-$$.txt")
+  printf '%s' "$api_resp" > "$tmp_json"
+
+  if ! $PY -c '
 import sys, json
+path = sys.argv[1]
 try:
-  data = json.load(sys.stdin)
+  data = json.load(open(path, encoding="utf-8"))
 except Exception as e:
+  print("JSON error:", e, file=sys.stderr)
   sys.exit(1)
+if isinstance(data, dict):
+  msg = data.get("message") or data.get("error") or str(data)
+  print(msg, file=sys.stderr)
+  sys.exit(2)
+if not isinstance(data, list):
+  print("Unexpected API response type", file=sys.stderr)
+  sys.exit(2)
 for i, r in enumerate(data, 1):
-  print("%d\t%s\t%s" % (i, r.get("full_name",""), r.get("clone_url","")))
-' 2>/dev/null) || die "Gagal parse daftar repo."
+  if not isinstance(r, dict):
+    continue
+  print("%d\t%s\t%s" % (i, r.get("full_name", ""), r.get("clone_url", "")))
+' "$tmp_json" > "$tmp_list"; then
+    rm -f "$tmp_json" "$tmp_list" 2>/dev/null || true
+    die "Gagal parse daftar repo. Cek token (scope repo) / response API."
+  fi
+
+  REPO_LIST=()
+  while IFS= read -r line || [[ -n "${line:-}" ]]; do
+    [[ -n "${line:-}" ]] && REPO_LIST+=("$line")
+  done < "$tmp_list"
+  rm -f "$tmp_json" "$tmp_list" 2>/dev/null || true
 
   if [[ ${#REPO_LIST[@]} -eq 0 ]]; then
-    die "Tidak ada repo ditemukan."
+    die "Tidak ada repo ditemukan. Pastikan token classic scope \"repo\", atau fine-grained: Repository access + Metadata read."
   fi
 
   echo
