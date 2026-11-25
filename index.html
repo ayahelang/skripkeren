@@ -234,20 +234,117 @@ Dengan begitu <code>skripkeren.silverhawk.web.id</code> dan subdomain GitHub Pag
 </section>
 
 <section>
-<h2>9. Daftar file aktif</h2>
+<h2>9. Home NAS (CasaOS) — <code>lnas.sh</code></h2>
+<p>
+Script menu interaktif untuk membangun <strong>NAS rumahan</strong> berbasis <strong>CasaOS</strong> di Ubuntu Server.
+Cocok laptop/PC bekas. Bisa digabung dengan <code>lserver.sh</code> (subdomain terpisah).
+</p>
+
+<p><strong>Jalankan di Ubuntu Server</strong> (disarankan pakai sudo):</p>
+<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnas.sh)</pre>
+
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/lnas.sh -o lnas.sh
+chmod +x lnas.sh
+sudo ./lnas.sh</pre>
+
+<h3>Menu yang tersedia</h3>
+<ol>
+<li><strong>Persiapan sistem</strong> — update + tools (curl, samba, smartmontools, dll.)</li>
+<li><strong>Firewall UFW</strong> — SSH, web (80/443), Samba (445/139)</li>
+<li><strong>Install Docker</strong> — wajib untuk CasaOS</li>
+<li><strong>Install CasaOS</strong> — installer resmi get.casaos.io</li>
+<li><strong>Info storage &amp; disk</strong> — lsblk, df, saran mount</li>
+<li><strong>Samba share cepat</strong> (opsional) — share folder di luar CasaOS</li>
+<li><strong>Cloudflare Tunnel untuk NAS</strong> — contoh subdomain <code>nas.silverhawk.web.id</code></li>
+<li><strong>Status layanan &amp; container</strong></li>
+<li><strong>Panduan &amp; tips</strong></li>
+</ol>
+
+<div class="note">
+💡 CasaOS memberi UI modern + App Store (Nextcloud, Jellyfin, PhotoPrism, dll.).
+Nameserver tetap di Domainesia; cukup tambah CNAME <code>nas</code> ke Cloudflare Tunnel.
+</div>
+</section>
+
+<section>
+<h2>10. Paket Server Lainnya (menu interaktif)</h2>
+<p>Semua script di bawah memakai gaya menu yang sama. <strong>Setiap script punya menu 0</strong> yang menjelaskan hardware &amp; persyaratan yang harus disiapkan manual.</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
+<tr><th align="left">File</th><th align="left">Fungsi</th><th align="left">Perintah cepat</th></tr>
+<tr>
+  <td><code>lnextcloud.sh</code></td>
+  <td>Nextcloud — Personal Cloud / File Sync</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnextcloud.sh)</code></td>
+</tr>
+<tr>
+  <td><code>limmich.sh</code></td>
+  <td>Immich — Google Photos alternatif</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/limmich.sh)</code></td>
+</tr>
+<tr>
+  <td><code>ljellyfin.sh</code></td>
+  <td>Jellyfin — Media Server</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/ljellyfin.sh)</code></td>
+</tr>
+<tr>
+  <td><code>lvpn.sh</code></td>
+  <td>WireGuard VPN</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lvpn.sh)</code></td>
+</tr>
+<tr>
+  <td><code>lnpm.sh</code></td>
+  <td>Nginx Proxy Manager — Reverse proxy + SSL</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnpm.sh)</code></td>
+</tr>
+<tr>
+  <td><code>lportainer.sh</code></td>
+  <td>Portainer — GUI Docker</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lportainer.sh)</code></td>
+</tr>
+<tr>
+  <td><code>lkuma.sh</code></td>
+  <td>Uptime Kuma — Monitoring</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lkuma.sh)</code></td>
+</tr>
+<tr>
+  <td><code>lvault.sh</code></td>
+  <td>Vaultwarden — Password Manager (Bitwarden compatible)</td>
+  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lvault.sh)</code></td>
+</tr>
+</table>
+
+<div class="note">
+💡 Semua script di atas memiliki <strong>menu 0 — Persyaratan</strong> yang wajib dibaca.
+Di sana dijelaskan hardware yang dibutuhkan dan hal-hal yang harus disiapkan manual
+(domain, DNS, port forwarding, akun Cloudflare, dll.) karena tidak bisa dilakukan otomatis oleh script.
+</div>
+</section>
+
+<section>
+<h2>11. Daftar file aktif</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
 <tr><th align="left">File</th><th align="left">Fungsi</th></tr>
 <tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
 <tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename, sync, + upload tanpa hapus file remote</td></tr>
-<tr><td><code>lserver.sh</code></td><td>Home Server Ubuntu — menu setup Cloudflare Tunnel + PocketBase + firewall</td></tr>
-<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows PowerShell / CMD)</td></tr>
-<tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux / Android — butuh root di Android)</td></tr>
-<tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
+<tr><td><code>lserver.sh</code></td><td>Home Server Ubuntu — Cloudflare Tunnel + PocketBase + firewall</td></tr>
+<tr><td><code>lnas.sh</code></td><td>Home NAS (CasaOS) — Docker + CasaOS + Samba + Tunnel</td></tr>
+<tr><td><code>lnextcloud.sh</code></td><td>Nextcloud — Personal Cloud</td></tr>
+<tr><td><code>limmich.sh</code></td><td>Immich — Photo backup (Google Photos alternatif)</td></tr>
+<tr><td><code>ljellyfin.sh</code></td><td>Jellyfin — Media Server</td></tr>
+<tr><td><code>lvpn.sh</code></td><td>WireGuard VPN</td></tr>
+<tr><td><code>lnpm.sh</code></td><td>Nginx Proxy Manager</td></tr>
+<tr><td><code>lportainer.sh</code></td><td>Portainer — Docker GUI</td></tr>
+<tr><td><code>lkuma.sh</code></td><td>Uptime Kuma — Monitoring</td></tr>
+<tr><td><code>lvault.sh</code></td><td>Vaultwarden — Password Manager</td></tr>
+<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows)</td></tr>
+<tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux)</td></tr>
+<tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI</td></tr>
 <tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
 </table>
-<div class="note">File menu parsial lama (<code>menu*.sh</code>, <code>t-rm2</code>–<code>t-rm6</code>, dll.) sudah dihapus karena fungsinya tercakup di atas.</div>
 </section>
 
 <footer>
