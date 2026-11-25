@@ -200,13 +200,48 @@ chmod +x wifi-pass.sh && ./wifi-pass.sh</pre>
 </section>
 
 <section>
-<h2>8. Daftar file aktif</h2>
+<h2>8. Home Server Ubuntu — <code>lserver.sh</code></h2>
+<p>
+Script menu interaktif untuk membangun <strong>server rumahan</strong> di Ubuntu Server (laptop jadul / PC bekas).
+Cocok dijalankan di terminal saja (tanpa GUI). Target default subdomain: <code>lserver.silverhawk.web.id</code>.
+</p>
+
+<p><strong>Jalankan di Ubuntu Server</strong> (disarankan pakai sudo):</p>
+<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lserver.sh)</pre>
+
+<p>atau unduh dulu:</p>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/lserver.sh -o lserver.sh
+chmod +x lserver.sh
+sudo ./lserver.sh</pre>
+
+<h3>Menu yang tersedia</h3>
+<ol>
+<li><strong>Update sistem + tools dasar</strong> — apt update/upgrade, curl, git, jq, htop, ufw, fail2ban, dll.</li>
+<li><strong>Firewall (UFW) + Fail2ban</strong> — buka SSH/80/443, aktifkan proteksi brute-force.</li>
+<li><strong>Install Docker</strong> — lewat get.docker.com resmi.</li>
+<li><strong>Cloudflare Tunnel</strong> — install <code>cloudflared</code> + panduan token/service untuk <code>lserver.silverhawk.web.id</code>.</li>
+<li><strong>Install PocketBase</strong> — real-time database + auth + admin UI (cocok untuk CRM / Marketplace).</li>
+<li><strong>Nginx reverse proxy</strong> (opsional) — proxy ke PocketBase di port 80.</li>
+<li><strong>Status layanan</strong> — cek apa saja yang sudah jalan.</li>
+<li><strong>Info CRM + contoh collection</strong> — penjelasan singkat + struktur data Marketplace.</li>
+<li><strong>Panduan DNS Domainesia</strong> — cara tambah CNAME tanpa mengubah Nameserver (supaya subdomain GitHub Pages lain aman).</li>
+</ol>
+
+<div class="note">
+💡 Nameserver domain tetap di Domainesia. Hanya tambah record CNAME <code>lserver</code> mengarah ke hostname Cloudflare Tunnel.
+Dengan begitu <code>skripkeren.silverhawk.web.id</code> dan subdomain GitHub Pages lainnya tidak terganggu.
+</div>
+</section>
+
+<section>
+<h2>9. Daftar file aktif</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
 <tr><th align="left">File</th><th align="left">Fungsi</th></tr>
-<tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI v0.4 — all-in-one (API + token)</td></tr>
+<tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
-<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename, sync, + upload tanpa hapus file remote (Codespaces &amp; Git Bash)</td></tr>
+<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename, sync, + upload tanpa hapus file remote</td></tr>
+<tr><td><code>lserver.sh</code></td><td>Home Server Ubuntu — menu setup Cloudflare Tunnel + PocketBase + firewall</td></tr>
 <tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows PowerShell / CMD)</td></tr>
 <tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux / Android — butuh root di Android)</td></tr>
 <tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI (Linux/macOS/Windows)</td></tr>
