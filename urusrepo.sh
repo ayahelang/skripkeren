@@ -99,6 +99,171 @@ current_branch() {
   git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main"
 }
 
+
+# ---------- dependency: Python (Git Bash / Windows) ----------
+# Cari interpreter Python yang benar-benar bisa import sys (bukan alias Microsoft Store)
+find_working_python() {
+  local cand cmd
+  # 1) perintah di PATH, uji import
+  for cmd in python python3 py; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      if [[ "$cmd" == "py" ]]; then
+        if py -3 -c "import sys" >/dev/null 2>&1; then
+          echo "py -3"
+          return 0
+        fi
+      else
+        if "$cmd" -c "import sys" >/dev/null 2>&1; then
+          # Tolak WindowsApps (Store stub) jika path mengarah ke sana
+          local resolved
+          resolved=$(command -v "$cmd" 2>/dev/null || true)
+          if [[ "$resolved" == *WindowsApps* ]]; then
+            continue
+          fi
+          echo "$cmd"
+          return 0
+        fi
+      fi
+    fi
+  done
+
+  # 2) Path umum installer python.org (tanpa restart Git Bash)
+  local home winuser
+  home="${HOME:-}"
+  winuser="${USERNAME:-${USER:-}}"
+  local -a paths=(
+    "$home/AppData/Local/Programs/Python/Python312/python.exe"
+    "$home/AppData/Local/Programs/Python/Python313/python.exe"
+    "$home/AppData/Local/Programs/Python/Python311/python.exe"
+    "$home/AppData/Local/Programs/Python/Python310/python.exe"
+    "/c/Users/$winuser/AppData/Local/Programs/Python/Python312/python.exe"
+    "/c/Users/$winuser/AppData/Local/Programs/Python/Python313/python.exe"
+    "/c/Users/$winuser/AppData/Local/Programs/Python/Python311/python.exe"
+    "/c/Python312/python.exe"
+    "/c/Python313/python.exe"
+    "/c/Program Files/Python312/python.exe"
+    "/c/Program Files/Python313/python.exe"
+  )
+  # glob Python3*
+  local d
+  for d in "$home"/AppData/Local/Programs/Python/Python3*/python.exe \
+           /c/Users/"$winuser"/AppData/Local/Programs/Python/Python3*/python.exe; do
+    [[ -x "$d" || -f "$d" ]] && paths+=("$d")
+  done
+
+  for cand in "${paths[@]}"; do
+    if [[ -f "$cand" ]] && "$cand" -c "import sys" >/dev/null 2>&1; then
+      echo "$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+disable_windows_python_store_alias() {
+  # Hapus stub Microsoft Store agar tidak menahan nama "python"
+  local apps
+  apps="${LOCALAPPDATA:-$HOME/AppData/Local}/Microsoft/WindowsApps"
+  if [[ -d "$apps" ]]; then
+    info "Menonaktifkan alias Microsoft Store untuk python (jika ada)…"
+    rm -f "$apps/python.exe" "$apps/python3.exe" "$apps/python3.12.exe" "$apps/python3.11.exe" 2>/dev/null || true
+    # Via PowerShell registry AppExecutionAlias (best-effort)
+    powershell.exe -NoProfile -Command '
+      $names = @("python.exe","python3.exe")
+      foreach ($n in $names) {
+        $p = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\$n"
+        if (Test-Path $p) { Remove-Item $p -Force -ErrorAction SilentlyContinue }
+      }
+    ' 2>/dev/null || true
+  fi
+}
+
+install_python_windows() {
+  info "Mencoba install Python otomatis…"
+  echo "  Metode: winget (Python.Python.3.12) — butuh koneksi internet"
+  echo "  Setelah install, PATH mungkin perlu sesi Git Bash baru."
+  echo
+
+  if command -v winget >/dev/null 2>&1; then
+    info "Menjalankan winget install Python.Python.3.12 …"
+    winget install --id Python.Python.3.12 -e --accept-package-agreements --accept-source-agreements \
+      || cmd.exe //c "winget install --id Python.Python.3.12 -e --accept-package-agreements --accept-source-agreements" \
+      || return 1
+  elif command -v cmd.exe >/dev/null 2>&1; then
+    info "winget via cmd.exe…"
+    cmd.exe //c "winget install --id Python.Python.3.12 -e --accept-package-agreements --accept-source-agreements" || return 1
+  else
+    err "winget tidak tersedia. Install manual: https://www.python.org/downloads/ (centang Add to PATH)"
+    return 1
+  fi
+
+  # Refresh PATH di sesi ini (best-effort)
+  local winuser home
+  home="${HOME:-}"
+  winuser="${USERNAME:-${USER:-}}"
+  local d
+  for d in "$home"/AppData/Local/Programs/Python/Python3* \
+           /c/Users/"$winuser"/AppData/Local/Programs/Python/Python3*; do
+    if [[ -d "$d" && -f "$d/python.exe" ]]; then
+      export PATH="$d:$d/Scripts:$PATH"
+      info "PATH sesi ini ditambah: $d"
+    fi
+  done
+  return 0
+}
+
+# Pastikan Python siap; auto-install di Windows/Git Bash jika kurang
+ensure_python() {
+  local found
+  found=$(find_working_python 2>/dev/null || true)
+  if [[ -n "$found" ]]; then
+    PY_CMD="$found"
+    return 0
+  fi
+
+  warn "Python belum terdeteksi (atau hanya alias Microsoft Store)."
+  echo
+  echo "Script akan mencoba:"
+  echo "  1) Nonaktifkan alias Store python.exe / python3.exe"
+  echo "  2) Install Python 3.12 lewat winget (jika belum ada)"
+  echo "  3) Cari lagi python.exe di folder installer umum"
+  echo
+  if [[ "${ENV_KIND:-}" == "gitbash" || "$(uname -s 2>/dev/null)" == MINGW* || "$(uname -s 2>/dev/null)" == MSYS* ]]; then
+    printf "Lanjut auto-setup Python di Windows? [Y/n] "
+    local a=""
+    read -r a || true
+    a="${a:-Y}"
+    if [[ "${a,,}" == "n" || "${a,,}" == "no" ]]; then
+      die "Python wajib. Install dari https://www.python.org/downloads/ (centang Add to PATH), tutup Git Bash, buka lagi."
+    fi
+    disable_windows_python_store_alias
+    found=$(find_working_python 2>/dev/null || true)
+    if [[ -n "$found" ]]; then
+      PY_CMD="$found"
+      ok "Python ditemukan setelah menonaktifkan alias Store: $PY_CMD"
+      return 0
+    fi
+    install_python_windows || true
+    disable_windows_python_store_alias
+    found=$(find_working_python 2>/dev/null || true)
+    if [[ -n "$found" ]]; then
+      PY_CMD="$found"
+      ok "Python siap: $PY_CMD"
+      return 0
+    fi
+    err "Python masih belum terdeteksi di sesi ini."
+    echo "  Lakukan:"
+    echo "  1) Tutup SEMUA jendela Git Bash"
+    echo "  2) Buka Git Bash baru"
+    echo "  3) Jalankan: python --version"
+    echo "  4) Ulangi urusrepo.sh"
+    die "Restart Git Bash lalu coba lagi."
+  fi
+
+  die "Python tidak tersedia. Install python3 lalu jalankan ulang script."
+}
+
+
 # ---------- wizard login (desktop / git bash) ----------
 wizard_login() {
   header
@@ -123,15 +288,11 @@ wizard_login() {
     "https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner" 2>/dev/null) \
     || die "Gagal login / ambil repo. Cek username & token."
 
-  # Pilih Python yang BENAR-BENAR jalan (hindari alias Microsoft Store "python3")
+  # Pastikan Python siap (deteksi path Windows + auto-install winget bila perlu)
   local PY=""
-  if command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
-    PY=python
-  elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
-    PY=python3
-  else
-    die "Python tidak tersedia. Di Windows: install Python dari python.org dan matikan App execution aliases python3 di Settings."
-  fi
+  PY_CMD=""
+  ensure_python
+  PY="$PY_CMD"
   info "Parser: ${PY} ($($PY -c 'import sys; print(sys.version.split()[0])' 2>/dev/null || echo '?'))"
 
   # Parse via file sementara (lebih andal di Git Bash daripada mapfile + process substitution)
