@@ -4,375 +4,106 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Skripkeren — Panduan Script GitHub</title>
-<meta name="description" content="Kumpulan skrip Bash untuk manajemen repository GitHub — jalan di Desktop, Codespaces, maupun terminal online. Termasuk t-rm.sh, restore.sh, dan urusrepo.sh.">
+<meta name="description" content="Kumpulan skrip Bash Skripkeren: restore, superx, builder, t-rm, server, NAS, dan lainnya.">
 <meta name="theme-color" content="#2563eb">
 <meta name="author" content="Ted / Silverhawk">
-
-<!-- Favicon -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
-
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Skripkeren">
-<meta property="og:title" content="Skripkeren — Panduan Script GitHub">
-<meta property="og:description" content="Kumpulan skrip Bash untuk manajemen repository GitHub. Codespaces, Git Bash, dan terminal online.">
-<meta property="og:url" content="https://skripkeren.silverhawk.web.id/">
-<meta property="og:image" content="https://skripkeren.silverhawk.web.id/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Skripkeren — script Bash untuk GitHub">
-<meta property="og:locale" content="id_ID">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Skripkeren — Panduan Script GitHub">
-<meta name="twitter:description" content="Kumpulan skrip Bash untuk manajemen repository GitHub. Codespaces, Git Bash, dan terminal online.">
-<meta name="twitter:image" content="https://skripkeren.silverhawk.web.id/og-image.png">
-
 <link rel="stylesheet" href="https://silverhawk.web.id/lock/lock.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-
 <section class="deps-banner" id="autoDeps">
   <div class="deps-banner-inner">
     <strong>Auto dependency check</strong>
-    <p>Script Skripkeren kini memeriksa dependency di awal (curl, git, python, docker, gh, dll).
-    Jika kurang dan bisa diinstall lewat terminal (winget / apt / brew), script akan menawarkan instalasi otomatis sambil menampilkan progres.</p>
-    <p class="deps-meta">Helper bersama: <code>sk-deps.sh</code> · contoh canggih: <code>urusrepo.sh</code></p>
+    <p>Script memeriksa curl/git/python/docker/gh di awal dan menawarkan instalasi (winget/apt/brew) bila kurang.</p>
+    <p class="deps-meta">Helper: <code>scripts/sk-deps.sh</code> · semua script ada di folder <code>scripts/</code></p>
   </div>
 </section>
-
-
 <div class="container">
 <header>
 <h1>Skripkeren by Ted</h1>
-<p>Kumpulan skrip Bash untuk manajemen repository GitHub — jalan di Desktop, Codespaces, maupun terminal online</p>
+<p>Semua file .sh terkumpul di <code>scripts/</code> — jalan di Git Bash, Linux, macOS, Codespaces</p>
 </header>
 
 <section>
-<h2>1. Persiapan (opsional di Codespaces)</h2>
-<p>Di <strong>GitHub Codespaces</strong> biasanya <code>git</code> dan <code>curl</code> sudah ada. Di laptop, siapkan:</p>
-<ol>
-<li><a href="installgit.html" target="_blank">Terminal Git Bash</a> (Windows) atau Terminal biasa (macOS/Linux)</li>
-<li>
-GitHub CLI (<code>gh</code>) — disarankan agar login lebih mudah:
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/installgitcli.sh)</pre>
-</li>
-</ol>
-<div class="note">💡 <code>t-rm.sh</code> bisa jalan <strong>tanpa</strong> <code>gh</code> (pakai token/PAT). Tapi dengan <code>gh</code>, login bisa lewat browser tanpa tempel token manual.</div>
+<h2>1. Persiapan</h2>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
 </section>
 
 <section>
-<h2>2. Silverhawk AutoCLI — <code>t-rm.sh</code></h2>
-<p>All-in-one: login, pilih repo, file manager (browse/upload/hapus), buat/rename/hapus repo, GitHub Pages.</p>
+<h2>2. AutoCLI &amp; Repo — t-rm.sh / t-rm7.sh / urusrepo.sh</h2>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh)</pre>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
+</section>
 
-<p><strong>Jalankan di mana saja</strong> (Desktop / Codespaces / Copilot terminal):</p>
-
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/t-rm.sh)</pre>
-
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/t-rm.sh -o t-rm.sh && bash t-rm.sh</pre>
-
-<h3>Login (otomatis menyesuaikan lingkungan)</h3>
-<ul>
-<li><strong>Codespaces</strong> — coba pakai <code>GITHUB_TOKEN</code> otomatis</li>
-<li><strong>Desktop + gh sudah login</strong> — ambil sesi <code>gh auth</code></li>
-<li><strong>Lainnya</strong> — pilih di menu:
-  <ol>
-    <li>Auto-detect lagi</li>
-    <li>Login via GitHub CLI (browser / device code) — <em>disarankan</em></li>
-    <li>Tempel PAT manual</li>
-    <li>Panduan buat PAT</li>
-  </ol>
-</li>
-</ul>
+<section>
+<h2>3. Restore commit — restore.sh</h2>
 <div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
-⚠️ GitHub <strong>tidak mengizinkan</strong> login API hanya dengan username + password.
-Gunakan PAT atau <code>gh auth login</code>.
+<strong>Wajib dijalankan dari dalam folder repo Git</strong> (ada <code>.git</code>).
+Bukan dari Downloads atau folder biasa.
 </div>
+<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh | bash</pre>
+</section>
 
-<h3>Menu utama (ringkas)</h3>
-<pre><button class="copy-btn">Copy</button>
-AKUN &amp; REPOSITORY
- 1. Login / ganti akun GitHub
- 2. Pilih repository
- 3. File Manager (browse / upload / hapus)
- 4. Hapus file/folder cepat
- 5. Buat repository baru
- 6. Rename repository
- 7. Hapus repository
- 8. GitHub Pages / Jekyll
- 9. Branch &amp; riwayat
-10. Pengaturan repository
-11. Bantuan token GitHub
- 0. Keluar
+<section>
+<h2>4. SuperX uninstaller — superx.sh</h2>
+<p>List aplikasi Windows + pilih nomor/range, tandai SISTEM, uninstall massal.</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)</pre>
+</section>
+
+<section>
+<h2>5. Builder repo → APK / EXE / image — builder.sh</h2>
+<p>Tempel URL GitHub → deteksi bahasa &amp; stack → cek/buat workflow Actions &amp; Dockerfile jika kurang → coba build lokal → tunjukkan path &amp; ukuran artefak / link Actions.</p>
+<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh)</pre>
+</section>
+
+<section>
+<h2>6. Server &amp; NAS</h2>
+<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh)</pre>
+<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh)</pre>
+</section>
+
+<section>
+<h2>7. Struktur folder</h2>
+<pre>
+skripkeren/
+├── index.html
+├── css/style.css
+├── js/script.js
+├── scripts/     ← SEMUA .sh dan .ps1
+└── info/
 </pre>
+<p>URL publik script: <code>https://skripkeren.silverhawk.web.id/scripts/NAMA.sh</code></p>
+<p>Loader sk-deps di setiap script: cek dulu file di folder yang sama, baru unduh dari <code>/scripts/sk-deps.sh</code> — pemindahan ke <code>scripts/</code> tidak memutus eksekusi.</p>
 </section>
 
 <section>
-<h2>3. Repo Manager v7 — <code>t-rm7.sh</code> (berbasis gh CLI)</h2>
-<p>Alternatif berbasis menu <code>gh</code> klasik (multi-akun, collaborator, scopes, dll.):</p>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/t-rm7.sh)</pre>
-<p>Butuh <code>gh</code> + <code>git</code> terpasang. Cocok jika sudah terbiasa alur Repo Manager lama.</p>
-</section>
-
-<section>
-<h2>4. Restore / Rollback commit — <code>restore.sh</code></h2>
-<p>Kembalikan repo ke commit (titik sejarah) sebelumnya. Aman dipakai lewat <code>curl | bash</code> (input dari terminal asli).</p>
-<ol>
-<li>Buka terminal <strong>di dalam folder repository</strong> (Codespaces atau lokal).</li>
-<li>Jalankan:</li>
-</ol>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash</pre>
-<p>atau:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh -o restore.sh && chmod +x restore.sh && ./restore.sh</pre>
-<div class="note">
-Script menampilkan info akun/repo/branch, daftar 25 commit, lalu Anda pilih nomor.<br>
-Konfirmasi wajib ketik <code>YA</code> sebelum <code>reset --hard</code> + <code>push --force</code>.
-</div>
-<p><a href="panduan-rollback-github.html" target="_blank">→ Panduan Rollback GitHub Pages (lengkap, cara web + Git Bash)</a></p>
-</section>
-
-<section>
-<h2>5. Urus Repo — <code>urusrepo.sh</code></h2>
-<p>
-Script interaktif untuk membersihkan repo, rename massal file (web-safe),
-dan menyamakan isi lokal ↔ GitHub.
-Otomatis menyesuaikan lingkungan: <strong>Codespaces</strong> atau <strong>Git Bash / desktop</strong>.
-</p>
-<p><em>Developed by James What</em></p>
-
-<p><strong>Jalankan di mana saja</strong> (Codespaces / Git Bash / terminal):</p>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh)</pre>
-
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh -o urusrepo.sh && chmod +x urusrepo.sh && bash urusrepo.sh</pre>
-
-<h3>Perilaku per lingkungan</h3>
-<ul>
-<li><strong>Codespaces</strong> — langsung menu; repo aktif = folder Codespaces saat ini</li>
-<li><strong>Git Bash / desktop</strong> — wizard login (username + PAT), pilih nomor repo dari daftar, lalu menu</li>
-</ul>
-
-<h3>Menu utama</h3>
-<ol>
-<li><strong>Kosongkan isi repo</strong> — hapus semua di root kecuali <code>CNAME</code>, file <code>*.sh</code>, dan exclude opsional yang Anda ketik</li>
-<li><strong>Rename massal folder</strong> — spasi→underscore, pecah CamelCase, lowercase, buang karakter khusus; bentrok dilengkapi nomor leading zero. Bisa juga pakai nama dasar kustom + nomor</li>
-<li><strong>Samakan lokal ← GitHub</strong> — <code>fetch</code> + <code>reset --hard</code> ke origin (perubahan lokal belum di-push bisa hilang)</li>
-<li><strong>Samakan GitHub ← lokal</strong> — <code>git add -A</code> + commit + push <em>(termasuk menghapus file yang tidak ada di lokal)</em></li>
-<li><strong>Ganti / pilih repo</strong> — ulangi wizard login</li>
-<li><strong>Upload lokal → GitHub (keep remote)</strong> — tambah &amp; update file dari lokal, <strong>tanpa menghapus</strong> file/folder yang hanya ada di GitHub</li>
-</ol>
-
-<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
-⚠️ Menu kosongkan &amp; reset bersifat merusak data lokal — selalu ada konfirmasi <code>y/N</code>.
-Pakai <strong>Personal Access Token (PAT)</strong> scope <code>repo</code>, bukan password akun GitHub.
-</div>
-</section>
-
-<section>
-<h2>6. Reveal Password WiFi</h2>
-<p>Menampilkan password WiFi yang sudah pernah terhubung &amp; tersimpan.</p>
-
-<h3>Windows — <code>wifi-pass.ps1</code></h3>
-<p>PowerShell (disarankan jalankan sebagai <strong>Administrator</strong>):</p>
-<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 | iex</pre>
-
-<p>Dari <strong>CMD</strong> (as Administrator):</p>
-<pre><button class="copy-btn">Copy</button>powershell -ExecutionPolicy Bypass -Command "irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 | iex"</pre>
-
-<p>Atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/wifi-pass.ps1 -OutFile wifi-pass.ps1
-powershell -ExecutionPolicy Bypass -File .\wifi-pass.ps1</pre>
-
-<div class="note">Menampilkan password WiFi aktif + daftar semua profil tersimpan yang bisa dipilih.</div>
-
-<h3>Linux / Termux / Android — <code>wifi-pass.sh</code></h3>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/wifi-pass.sh)</pre>
-
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/wifi-pass.sh -o wifi-pass.sh
-chmod +x wifi-pass.sh && ./wifi-pass.sh</pre>
-
-<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
-⚠️ Di <strong>Android</strong> butuh <strong>root</strong> untuk membaca password. Tanpa root hanya bisa melihat SSID yang sedang terhubung (jika tersedia). Di Linux biasa biasanya butuh <code>sudo</code>.
-</div>
-</section>
-
-<section>
-<h2>7. Installer lain</h2>
-<p>Install Google Chrome di Linux Bookworm / Puppy:</p>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/install_chrome_bookworm_puppy.sh)</pre>
-</section>
-
-<section>
-<h2>8. Home Server Ubuntu — <code>lserver.sh</code></h2>
-<p>
-Script menu interaktif untuk membangun <strong>server rumahan</strong> di Ubuntu Server (laptop jadul / PC bekas).
-Cocok dijalankan di terminal saja (tanpa GUI). Target default subdomain: <code>lserver.silverhawk.web.id</code>.
-</p>
-
-<p><strong>Jalankan di Ubuntu Server</strong> (disarankan pakai sudo):</p>
-<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lserver.sh)</pre>
-
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/lserver.sh -o lserver.sh
-chmod +x lserver.sh
-sudo ./lserver.sh</pre>
-
-<h3>Menu yang tersedia</h3>
-<ol>
-<li><strong>Update sistem + tools dasar</strong> — apt update/upgrade, curl, git, jq, htop, ufw, fail2ban, dll.</li>
-<li><strong>Firewall (UFW) + Fail2ban</strong> — buka SSH/80/443, aktifkan proteksi brute-force.</li>
-<li><strong>Install Docker</strong> — lewat get.docker.com resmi.</li>
-<li><strong>Cloudflare Tunnel</strong> — install <code>cloudflared</code> + panduan token/service untuk <code>lserver.silverhawk.web.id</code>.</li>
-<li><strong>Install PocketBase</strong> — real-time database + auth + admin UI (cocok untuk CRM / Marketplace).</li>
-<li><strong>Nginx reverse proxy</strong> (opsional) — proxy ke PocketBase di port 80.</li>
-<li><strong>Status layanan</strong> — cek apa saja yang sudah jalan.</li>
-<li><strong>Info CRM + contoh collection</strong> — penjelasan singkat + struktur data Marketplace.</li>
-<li><strong>Panduan DNS Domainesia</strong> — cara tambah CNAME tanpa mengubah Nameserver (supaya subdomain GitHub Pages lain aman).</li>
-</ol>
-
-<div class="note">
-💡 Nameserver domain tetap di Domainesia. Hanya tambah record CNAME <code>lserver</code> mengarah ke hostname Cloudflare Tunnel.
-Dengan begitu <code>skripkeren.silverhawk.web.id</code> dan subdomain GitHub Pages lainnya tidak terganggu.
-</div>
-</section>
-
-<section>
-<h2>9. Home NAS (CasaOS) — <code>lnas.sh</code></h2>
-<p>
-Script menu interaktif untuk membangun <strong>NAS rumahan</strong> berbasis <strong>CasaOS</strong> di Ubuntu Server.
-Cocok laptop/PC bekas. Bisa digabung dengan <code>lserver.sh</code> (subdomain terpisah).
-</p>
-
-<p><strong>Jalankan di Ubuntu Server</strong> (disarankan pakai sudo):</p>
-<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnas.sh)</pre>
-
-<p>atau unduh dulu:</p>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/lnas.sh -o lnas.sh
-chmod +x lnas.sh
-sudo ./lnas.sh</pre>
-
-<h3>Menu yang tersedia</h3>
-<ol>
-<li><strong>Persiapan sistem</strong> — update + tools (curl, samba, smartmontools, dll.)</li>
-<li><strong>Firewall UFW</strong> — SSH, web (80/443), Samba (445/139)</li>
-<li><strong>Install Docker</strong> — wajib untuk CasaOS</li>
-<li><strong>Install CasaOS</strong> — installer resmi get.casaos.io</li>
-<li><strong>Info storage &amp; disk</strong> — lsblk, df, saran mount</li>
-<li><strong>Samba share cepat</strong> (opsional) — share folder di luar CasaOS</li>
-<li><strong>Cloudflare Tunnel untuk NAS</strong> — contoh subdomain <code>nas.silverhawk.web.id</code></li>
-<li><strong>Status layanan &amp; container</strong></li>
-<li><strong>Panduan &amp; tips</strong></li>
-</ol>
-
-<div class="note">
-💡 CasaOS memberi UI modern + App Store (Nextcloud, Jellyfin, PhotoPrism, dll.).
-Nameserver tetap di Domainesia; cukup tambah CNAME <code>nas</code> ke Cloudflare Tunnel.
-</div>
-</section>
-
-<section>
-<h2>10. Paket Server Lainnya (menu interaktif)</h2>
-<p>Semua script di bawah memakai gaya menu yang sama. <strong>Setiap script punya menu 0</strong> yang menjelaskan hardware &amp; persyaratan yang harus disiapkan manual.</p>
-
-<table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
-<tr><th align="left">File</th><th align="left">Fungsi</th><th align="left">Perintah cepat</th></tr>
-<tr>
-  <td><code>lnextcloud.sh</code></td>
-  <td>Nextcloud — Personal Cloud / File Sync</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnextcloud.sh)</code></td>
-</tr>
-<tr>
-  <td><code>limmich.sh</code></td>
-  <td>Immich — Google Photos alternatif</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/limmich.sh)</code></td>
-</tr>
-<tr>
-  <td><code>ljellyfin.sh</code></td>
-  <td>Jellyfin — Media Server</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/ljellyfin.sh)</code></td>
-</tr>
-<tr>
-  <td><code>lvpn.sh</code></td>
-  <td>WireGuard VPN</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lvpn.sh)</code></td>
-</tr>
-<tr>
-  <td><code>lnpm.sh</code></td>
-  <td>Nginx Proxy Manager — Reverse proxy + SSL</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lnpm.sh)</code></td>
-</tr>
-<tr>
-  <td><code>lportainer.sh</code></td>
-  <td>Portainer — GUI Docker</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lportainer.sh)</code></td>
-</tr>
-<tr>
-  <td><code>lkuma.sh</code></td>
-  <td>Uptime Kuma — Monitoring</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lkuma.sh)</code></td>
-</tr>
-<tr>
-  <td><code>lvault.sh</code></td>
-  <td>Vaultwarden — Password Manager (Bitwarden compatible)</td>
-  <td><code>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/lvault.sh)</code></td>
-</tr>
-</table>
-
-<div class="note">
-💡 Semua script di atas memiliki <strong>menu 0 — Persyaratan</strong> yang wajib dibaca.
-Di sana dijelaskan hardware yang dibutuhkan dan hal-hal yang harus disiapkan manual
-(domain, DNS, port forwarding, akun Cloudflare, dll.) karena tidak bisa dilakukan otomatis oleh script.
-</div>
-</section>
-
-<section>
-<h2>11. Daftar file aktif</h2>
+<h2>8. Daftar scripts/</h2>
 <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
 <tr><th align="left">File</th><th align="left">Fungsi</th></tr>
-<tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI — all-in-one (API + token)</td></tr>
-<tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
-<tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
-<tr><td><code>urusrepo.sh</code></td><td>Urus repo — auto-deps (python/git), kosongkan, rename, sync, upload tanpa hapus remote</td></tr>
-<tr><td><code>lserver.sh</code></td><td>Home Server Ubuntu — Cloudflare Tunnel + PocketBase + firewall</td></tr>
-<tr><td><code>lnas.sh</code></td><td>Home NAS (CasaOS) — Docker + CasaOS + Samba + Tunnel</td></tr>
-<tr><td><code>lnextcloud.sh</code></td><td>Nextcloud — Personal Cloud</td></tr>
-<tr><td><code>limmich.sh</code></td><td>Immich — Photo backup (Google Photos alternatif)</td></tr>
-<tr><td><code>ljellyfin.sh</code></td><td>Jellyfin — Media Server</td></tr>
-<tr><td><code>lvpn.sh</code></td><td>WireGuard VPN</td></tr>
-<tr><td><code>lnpm.sh</code></td><td>Nginx Proxy Manager</td></tr>
-<tr><td><code>lportainer.sh</code></td><td>Portainer — Docker GUI</td></tr>
-<tr><td><code>lkuma.sh</code></td><td>Uptime Kuma — Monitoring</td></tr>
-<tr><td><code>lvault.sh</code></td><td>Vaultwarden — Password Manager</td></tr>
-<tr><td><code>wifi-pass.ps1</code></td><td>Reveal password WiFi (Windows)</td></tr>
-<tr><td><code>wifi-pass.sh</code></td><td>Reveal password WiFi (Linux / Termux)</td></tr>
-<tr><td><code>installgitcli.sh</code></td><td>Installer GitHub CLI</td></tr>
-<tr><td><code>install_chrome_bookworm_puppy.sh</code></td><td>Installer Chrome (Debian/Puppy)</td></tr>
+<tr><td>builder.sh</td><td>Deteksi repo, workflow CI, build APK/EXE/image</td></tr>
+<tr><td>restore.sh</td><td>Rollback commit + cek dependency</td></tr>
+<tr><td>superx.sh</td><td>Multi-app uninstall Windows</td></tr>
+<tr><td>sk-deps.sh</td><td>Helper dependency</td></tr>
+<tr><td>t-rm.sh / t-rm7.sh / t-rmOK.sh</td><td>Manajemen repo GitHub</td></tr>
+<tr><td>urusrepo.sh</td><td>Kosongkan / rename / sync repo</td></tr>
+<tr><td>lserver.sh / lnas.sh</td><td>Home server &amp; CasaOS NAS</td></tr>
+<tr><td>lnextcloud / limmich / ljellyfin / lvpn / lnpm / lportainer / lkuma / lvault</td><td>Paket server</td></tr>
+<tr><td>wifi-pass.sh / wifi-pass.ps1</td><td>Password WiFi</td></tr>
+<tr><td>installgitcli.sh / install_chrome_bookworm_puppy.sh</td><td>Installer</td></tr>
 </table>
 </section>
 
-<footer>
-&copy; 2026 — Skripkeren | Repo: ayahelang/skripkeren | Host: skripkeren.silverhawk.web.id
-</footer>
-
+<footer>&copy; 2026 — Skripkeren | ayahelang/skripkeren | skripkeren.silverhawk.web.id</footer>
 </div>
-
- <div id="repoSplash">
+<div id="repoSplash">
   <div class="repo-card">
     <div class="repo-header">
-      <h2>🚀 GitHub Repo → GitHub Pages</h2>
+      <h2>GitHub Repo → GitHub Pages</h2>
       <button id="btnCloseSplash" class="closeSplash" title="Tutup">&times;</button>
     </div>
     <p>Tempel alamat repository GitHub, lalu klik <b>Convert</b>.</p>
-    <input id="repoInput" class="repo-input" type="url" autocomplete="off" spellcheck="false"
-      placeholder="https://github.com/username/repository">
+    <input id="repoInput" class="repo-input" type="url" placeholder="https://github.com/username/repository">
     <div class="repo-actions">
       <button id="btnConvert">Convert</button>
       <button id="btnCopyResult">Copy</button>
@@ -380,13 +111,10 @@ Di sana dijelaskan hardware yang dibutuhkan dan hal-hal yang harus disiapkan man
     </div>
     <div id="repoStatus" class="repo-status"></div>
     <div id="repoResult"></div>
-    <a id="repoLink" href="#" target="_blank" rel="noopener">
-      <img id="repoThumb" src="" alt="Preview GitHub Pages">
-    </a>
+    <a id="repoLink" href="#" target="_blank" rel="noopener"><img id="repoThumb" src="" alt=""></a>
   </div>
 </div>
-
-<script src="script.js"></script>
+<script src="js/script.js"></script>
 <script src="https://silverhawk.web.id/lock/lock.js"></script>
 </body>
 </html>

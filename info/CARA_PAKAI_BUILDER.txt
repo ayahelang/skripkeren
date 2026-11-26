@@ -1,0 +1,10 @@
+builder.sh
+==========
+1. bash builder.sh  (atau curl .../scripts/builder.sh | bash)
+2. Tempel URL https://github.com/owner/repo
+3. Script clone/unduh source, deteksi bahasa & target (apk, exe, docker, ...)
+4. Cek .github/workflows — jika belum ada, dibuatkan sesuai stack
+5. Dockerfile template jika perlu image
+6. Opsional build lokal; hasil di ~/skripkeren-build/ dengan ukuran file
+7. Untuk APK/EXE penuh di cloud: push workflow → GitHub Actions → unduh Artifact
+   Link: https://github.com/owner/repo/actions

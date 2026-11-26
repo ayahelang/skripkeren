@@ -1,0 +1,11 @@
+Struktur Skripkeren (lengkap)
+=============================
+index.html, css/, js/ di tempatnya.
+SEMUA file .sh dan .ps1 ada di scripts/.
+
+Eksekusi setelah pindah folder:
+- curl URL memakai /scripts/nama.sh
+- sk-deps di-load dari folder yang sama dulu, fallback URL .../scripts/sk-deps.sh
+- Tidak perlu mengubah cara "bash script.sh" saat file sudah diunduh lokal
+
+Daftar scripts/: lihat folder scripts/ di zip ini.

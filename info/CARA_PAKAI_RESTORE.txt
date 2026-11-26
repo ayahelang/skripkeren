@@ -1,0 +1,4 @@
+restore.sh wajib dijalankan di dalam folder yang punya .git
+Contoh salah: ~/Downloads/optimized-images
+Contoh benar: cd /path/ke/repo && bash restore.sh
+URL: https://skripkeren.silverhawk.web.id/scripts/restore.sh
