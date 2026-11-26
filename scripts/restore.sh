@@ -3,7 +3,7 @@
 #  Universal Git Restore Tool (Skripkeren)
 #  Bekerja di: Git Bash (Windows), Linux, macOS, Codespaces
 #  Cara pakai:
-#    curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash
+#    curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh | bash
 #    atau: bash restore.sh   (dari dalam folder repo)
 # ==============================================
 
@@ -188,14 +188,79 @@ echo "║     Git Bash / Linux / macOS / Codespaces          ║"
 echo "╚════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
+# Folder kosong / tanpa .git BUKAN repository Git (meski namanya sama dengan repo di GitHub)
 if [ ! -d ".git" ]; then
-  echo -e "${RED}Error: Folder ini bukan repository Git.${NC}"
-  echo "Jalankan script ini dari dalam folder repository."
-  echo "Contoh (Git Bash / terminal):"
-  echo "  cd /path/ke/repo"
-  echo "  bash restore.sh"
-  echo "  # atau"
-  echo "  curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash"
+  echo -e "${YELLOW}Folder ini belum repository Git (tidak ada folder .git).${NC}"
+  echo "  Path saat ini: $(pwd)"
+  echo
+  echo "Folder kosong di laptop TIDAK otomatis terhubung ke GitHub."
+  echo "Yang dibutuhkan: hasil 'git clone' (ada folder .git di dalamnya)."
+  echo
+  echo "Pilih:"
+  echo "  1) Clone repo dari GitHub ke folder ini / subfolder, lalu lanjut restore"
+  echo "  2) Keluar (nanti clone manual)"
+  _c=$(ask "Pilih [1/2]: ")
+  _c=$(echo "$_c" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  if [[ "$_c" != "1" ]]; then
+    echo
+    echo "Contoh clone manual di Git Bash:"
+    echo "  cd ~/Downloads"
+    echo "  git clone https://github.com/OWNER/NAMA-REPO.git"
+    echo "  cd NAMA-REPO"
+    echo "  bash <(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh)"
+    exit 1
+  fi
+  echo
+  _url=$(ask "URL atau owner/repo GitHub: ")
+  _url=$(echo "$_url" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/\.git$//')
+  if [[ -z "$_url" ]]; then
+    echo -e "${RED}URL kosong.${NC}"
+    exit 1
+  fi
+  # normalisasi ke URL https
+  if [[ "$_url" =~ ^[^/]+/[^/]+$ ]]; then
+    _url="https://github.com/${_url}.git"
+  elif [[ "$_url" =~ github.com ]]; then
+    _url="${_url%.git}.git"
+    [[ "$_url" == https://* || "$_url" == git@* ]] || _url="https://${_url}"
+  else
+    echo -e "${RED}Format tidak dikenali. Pakai owner/repo atau URL GitHub.${NC}"
+    exit 1
+  fi
+  _name=$(basename "${_url%.git}")
+  # Jika folder saat ini kosong → clone ke . (butuh . bukan existing non-empty with junk)
+  _isempty=1
+  for _f in * .[!.]* ..?*; do
+    [[ -e "$_f" ]] || continue
+    [[ "$_f" == "." || "$_f" == ".." ]] && continue
+    _isempty=0
+    break
+  done 2>/dev/null || true
+  if [[ "$_isempty" -eq 1 ]]; then
+    echo -e "${CYAN}Folder kosong — clone ke direktori saat ini...${NC}"
+    git clone "$_url" . || { echo -e "${RED}Clone gagal.${NC}"; exit 1; }
+  else
+    echo -e "${CYAN}Clone ke subfolder: ${_name}${NC}"
+    if [[ -d "$_name" ]]; then
+      echo -e "${YELLOW}Folder ${_name} sudah ada.${NC}"
+      if [[ -d "$_name/.git" ]]; then
+        echo "Memakai folder yang sudah ada (sudah git repo)."
+        cd "$_name" || exit 1
+      else
+        echo -e "${RED}Folder ada tapi bukan git repo. Hapus/rename dulu.${NC}"
+        exit 1
+      fi
+    else
+      git clone "$_url" "$_name" || { echo -e "${RED}Clone gagal.${NC}"; exit 1; }
+      cd "$_name" || exit 1
+    fi
+  fi
+  echo -e "${GREEN}Clone OK. Lanjut restore di: $(pwd)${NC}"
+  echo
+fi
+
+if [ ! -d ".git" ]; then
+  echo -e "${RED}Masih bukan repository Git setelah clone.${NC}"
   exit 1
 fi
 
