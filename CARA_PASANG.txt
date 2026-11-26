@@ -1,0 +1,12 @@
+Skripkeren auto-deps v5
+=======================
+Baru:
+- sk-deps.sh — helper bersama (python/git/curl/gh/docker + auto-install)
+- Semua script .sh utama me-load sk-deps dan sk_ensure_basic di awal
+- index.html / style.css / script.js: banner "Auto dependency check"
+
+Deploy seluruh file di zip ke root repo ayahelang/skripkeren (GitHub Pages).
+
+Uji:
+  bash <(curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh)
+  bash <(curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh)

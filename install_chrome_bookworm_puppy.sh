@@ -3,6 +3,32 @@
 # Installer for Google Chrome (Debian Bookworm or Puppy-like systems)
 # Now includes setup for official Google repo & signing key for auto updates.
 # Usage: sudo ./install_chrome_bookworm_puppy.sh
+
+# --- Skripkeren auto-deps ---
+_SK_DEPS_URL="${SK_DEPS_URL:-https://skripkeren.silverhawk.web.id/sk-deps.sh}"
+_sk_load_deps() {
+  if [[ -n "${_SK_DEPS_LOADED:-}" ]]; then return 0; fi
+  local _dir _f _tmp
+  _dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || _dir="."
+  for _f in "$_dir/sk-deps.sh" "./sk-deps.sh"; do
+    if [[ -f "$_f" ]]; then
+      # shellcheck source=/dev/null
+      source "$_f"
+      return 0
+    fi
+  done
+  _tmp="$(mktemp 2>/dev/null || echo /tmp/sk-deps-$$.sh)"
+  if command -v curl >/dev/null 2>&1 && curl -fsSL "$_SK_DEPS_URL" -o "$_tmp" 2>/dev/null; then
+    # shellcheck source=/dev/null
+    source "$_tmp"
+    rm -f "$_tmp"
+    return 0
+  fi
+  rm -f "$_tmp" 2>/dev/null || true
+  return 1
+}
+_sk_load_deps || true
+
 set -euo pipefail
 
 LOG_PREFIX="[install-chrome]"
@@ -168,3 +194,12 @@ setup_google_repo
 
 info "Done. Google Chrome installed. It will now receive updates automatically via apt if supported."
 exit 0
+
+
+# Cek & lengkapi dependency sebelum menu utama
+if declare -F sk_ensure_basic >/dev/null 2>&1; then
+  sk_ensure_basic curl || {
+    echo "Dependency belum lengkap. Selesaikan install di atas lalu jalankan ulang."
+    exit 1
+  }
+fi

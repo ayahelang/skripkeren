@@ -12,6 +12,32 @@
 #   bash urusrepo.sh
 # =============================================================================
 
+
+# --- Skripkeren auto-deps ---
+_SK_DEPS_URL="${SK_DEPS_URL:-https://skripkeren.silverhawk.web.id/sk-deps.sh}"
+_sk_load_deps() {
+  if [[ -n "${_SK_DEPS_LOADED:-}" ]]; then return 0; fi
+  local _dir _f _tmp
+  _dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || _dir="."
+  for _f in "$_dir/sk-deps.sh" "./sk-deps.sh"; do
+    if [[ -f "$_f" ]]; then
+      # shellcheck source=/dev/null
+      source "$_f"
+      return 0
+    fi
+  done
+  _tmp="$(mktemp 2>/dev/null || echo /tmp/sk-deps-$$.sh)"
+  if command -v curl >/dev/null 2>&1 && curl -fsSL "$_SK_DEPS_URL" -o "$_tmp" 2>/dev/null; then
+    # shellcheck source=/dev/null
+    source "$_tmp"
+    rm -f "$_tmp"
+    return 0
+  fi
+  rm -f "$_tmp" 2>/dev/null || true
+  return 1
+}
+_sk_load_deps || true
+
 set -euo pipefail
 
 # ---------- warna & helper ----------
@@ -291,8 +317,12 @@ wizard_login() {
   # Pastikan Python siap (deteksi path Windows + auto-install winget bila perlu)
   local PY=""
   PY_CMD=""
-  ensure_python
-  PY="$PY_CMD"
+  if [[ -n "${SK_PYTHON:-}" ]]; then
+    PY="$SK_PYTHON"
+  else
+    ensure_python
+    PY="$PY_CMD"
+  fi
   info "Parser: ${PY} ($($PY -c 'import sys; print(sys.version.split()[0])' 2>/dev/null || echo '?'))"
 
   # Parse via file sementara (lebih andal di Git Bash daripada mapfile + process substitution)
@@ -780,6 +810,15 @@ menu_upload_keep_remote() {
 }
 
 # ---------- menu utama ----------
+
+# Cek & lengkapi dependency sebelum menu utama
+if declare -F sk_ensure_basic >/dev/null 2>&1; then
+  sk_ensure_basic curl git python || {
+    echo "Dependency belum lengkap. Selesaikan install di atas lalu jalankan ulang."
+    exit 1
+  }
+fi
+
 main_menu() {
   while true; do
     header

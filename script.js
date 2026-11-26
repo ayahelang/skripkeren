@@ -164,3 +164,14 @@ status.innerHTML=
 }
 
 });
+
+// Soft highlight auto-deps banner once
+document.addEventListener("DOMContentLoaded", () => {
+  const b = document.getElementById("autoDeps");
+  if (!b) return;
+  b.style.transition = "box-shadow .6s ease";
+  setTimeout(() => {
+    b.style.boxShadow = "0 0 0 3px rgba(11,110,79,.25)";
+    setTimeout(() => { b.style.boxShadow = "none"; }, 1800);
+  }, 600);
+});

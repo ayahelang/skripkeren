@@ -35,7 +35,18 @@
 <link rel="stylesheet" href="https://silverhawk.web.id/lock/lock.css">
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+<section class="deps-banner" id="autoDeps">
+  <div class="deps-banner-inner">
+    <strong>Auto dependency check</strong>
+    <p>Script Skripkeren kini memeriksa dependency di awal (curl, git, python, docker, gh, dll).
+    Jika kurang dan bisa diinstall lewat terminal (winget / apt / brew), script akan menawarkan instalasi otomatis sambil menampilkan progres.</p>
+    <p class="deps-meta">Helper bersama: <code>sk-deps.sh</code> · contoh canggih: <code>urusrepo.sh</code></p>
+  </div>
+</section>
+
 
 <div class="container">
 <header>
@@ -329,7 +340,7 @@ Di sana dijelaskan hardware yang dibutuhkan dan hal-hal yang harus disiapkan man
 <tr><td><code>t-rm.sh</code></td><td>Silverhawk AutoCLI — all-in-one (API + token)</td></tr>
 <tr><td><code>t-rm7.sh</code></td><td>Repo Manager v7 — menu berbasis gh CLI</td></tr>
 <tr><td><code>restore.sh</code></td><td>Rollback ke commit sebelumnya</td></tr>
-<tr><td><code>urusrepo.sh</code></td><td>Urus repo — kosongkan, rename, sync, + upload tanpa hapus file remote</td></tr>
+<tr><td><code>urusrepo.sh</code></td><td>Urus repo — auto-deps (python/git), kosongkan, rename, sync, upload tanpa hapus remote</td></tr>
 <tr><td><code>lserver.sh</code></td><td>Home Server Ubuntu — Cloudflare Tunnel + PocketBase + firewall</td></tr>
 <tr><td><code>lnas.sh</code></td><td>Home NAS (CasaOS) — Docker + CasaOS + Samba + Tunnel</td></tr>
 <tr><td><code>lnextcloud.sh</code></td><td>Nextcloud — Personal Cloud</td></tr>

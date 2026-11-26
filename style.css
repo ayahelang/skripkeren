@@ -214,3 +214,31 @@ border:1px solid #ddd;
 border-radius:10px;
 }
 
+
+
+/* Auto-deps banner */
+.deps-banner {
+  max-width: 960px;
+  margin: 1.25rem auto;
+  padding: 0 1rem;
+}
+.deps-banner-inner {
+  background: linear-gradient(135deg, #0B6E4F12, #0a5c4310);
+  border: 1px solid rgba(11,110,79,.25);
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  color: #084C37;
+}
+.deps-banner-inner strong {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: .35rem;
+}
+.deps-banner-inner p { margin: .35rem 0; line-height: 1.45; font-size: .92rem; }
+.deps-meta { opacity: .85; font-size: .85rem !important; }
+.deps-banner code {
+  background: rgba(11,110,79,.1);
+  padding: .1rem .35rem;
+  border-radius: 6px;
+  font-size: .85em;
+}
