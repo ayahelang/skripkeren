@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================
-#  Universal Git Restore Tool
-#  curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash
+#  Universal Git Restore Tool (Skripkeren)
+#  Bekerja di: Git Bash (Windows), Linux, macOS, Codespaces
+#  Cara pakai:
+#    curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash
+#    atau: bash restore.sh   (dari dalam folder repo)
 # ==============================================
-
 
 # --- Skripkeren auto-deps ---
 _SK_DEPS_URL="${SK_DEPS_URL:-https://skripkeren.silverhawk.web.id/sk-deps.sh}"
@@ -30,52 +32,170 @@ _sk_load_deps() {
 }
 _sk_load_deps || true
 
-set -e
+# Jangan langsung set -e agar dependency check lebih ramah
+set +e
 
-
-# Cek & lengkapi dependency sebelum menu utama
-if declare -F sk_ensure_basic >/dev/null 2>&1; then
-  sk_ensure_basic curl git || {
-    echo "Dependency belum lengkap. Selesaikan install di atas lalu jalankan ulang."
-    exit 1
-  }
+# Warna (aman di Git Bash Windows)
+if [[ -t 1 ]] || [[ -n "${MSYSTEM:-}" ]]; then
+  RED=$'\033[0;31m'
+  GREEN=$'\033[0;32m'
+  YELLOW=$'\033[1;33m'
+  CYAN=$'\033[0;36m'
+  BLUE=$'\033[0;34m'
+  NC=$'\033[0m'
+else
+  RED=; GREEN=; YELLOW=; CYAN=; BLUE=; NC=
 fi
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-TTY=/dev/tty
-if [ ! -c "$TTY" ] || [ ! -r "$TTY" ] || [ ! -w "$TTY" ]; then
+# TTY yang andal di Git Bash, Codespaces, Linux, macOS
+_setup_tty() {
+  TTY=/dev/tty
+  if [[ -c "$TTY" && -r "$TTY" && -w "$TTY" ]]; then
+    return 0
+  fi
+  # Fallback Git Bash / MSYS
+  if [[ -n "${MSYSTEM:-}" || "$(uname -s 2>/dev/null)" == MINGW* ]]; then
+    if [[ -c /dev/tty ]]; then
+      TTY=/dev/tty
+      return 0
+    fi
+  fi
   TTY=/dev/stdin
-fi
+}
+_setup_tty
 
 ask() {
   local _ans
-  printf "%s" "$1" >"$TTY"
-  if ! IFS= read -r _ans <"$TTY"; then
-    # EOF / Ctrl+D
-    printf "\n" >"$TTY"
+  # Tulis prompt ke terminal asli (penting saat curl | bash)
+  printf "%s" "$1" >"$TTY" 2>/dev/null || printf "%s" "$1"
+  if ! IFS= read -r _ans <"$TTY" 2>/dev/null; then
+    printf "\n" >"$TTY" 2>/dev/null || true
     printf "%s" "0"
     return
   fi
   printf "%s" "$_ans"
 }
 
+# ---------- Cek & bantu dependency ----------
+_check_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+_report_missing() {
+  local missing=()
+  _check_cmd curl || missing+=("curl")
+  _check_cmd git  || missing+=("git")
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    return 0
+  fi
+  echo -e "${YELLOW}Dependency belum lengkap: ${missing[*]}${NC}"
+  return 1
+}
+
+_try_install_deps() {
+  echo ""
+  echo -e "${CYAN}Mencoba memenuhi dependency...${NC}"
+  if declare -F sk_ensure_basic >/dev/null 2>&1; then
+    sk_ensure_basic curl git
+    return $?
+  fi
+  # Fallback sederhana jika sk-deps gagal di-load
+  if _check_cmd apt-get; then
+    sudo apt-get update -y >/dev/null 2>&1 || true
+    sudo apt-get install -y curl git 2>/dev/null && return 0
+  fi
+  if _check_cmd brew; then
+    brew install curl git 2>/dev/null && return 0
+  fi
+  if [[ -n "${MSYSTEM:-}" || -n "${WINDIR:-}" ]] && _check_cmd winget; then
+    winget install --id Git.Git -e --accept-package-agreements --accept-source-agreements 2>/dev/null || true
+    winget install --id curl.curl -e --accept-package-agreements --accept-source-agreements 2>/dev/null || true
+  fi
+  _check_cmd curl && _check_cmd git
+}
+
+show_deps_menu() {
+  echo ""
+  echo -e "${CYAN}┌────────────────────────────────────────────┐${NC}"
+  echo -e "${CYAN}│  Dependency Check                          │${NC}"
+  echo -e "${CYAN}└────────────────────────────────────────────┘${NC}"
+  local ok=1
+  if _check_cmd curl; then
+    echo -e "  curl  ${GREEN}OK${NC}  ($(_check_cmd curl && command -v curl))"
+  else
+    echo -e "  curl  ${RED}BELUM${NC}"
+    ok=0
+  fi
+  if _check_cmd git; then
+    echo -e "  git   ${GREEN}OK${NC}  ($(git --version 2>/dev/null | head -1))"
+  else
+    echo -e "  git   ${RED}BELUM${NC}"
+    ok=0
+  fi
+  echo ""
+  if [[ $ok -eq 1 ]]; then
+    echo -e "${GREEN}Semua dependency inti siap.${NC}"
+    return 0
+  fi
+  echo -e "${YELLOW}Ada dependency yang kurang.${NC}"
+  echo "  1) Coba install otomatis (via sk-deps / winget / apt / brew)"
+  echo "  2) Lanjut saja (jika kamu yakin sudah ada)"
+  echo "  0) Keluar"
+  local c
+  c=$(ask "Pilih: ")
+  c=$(printf '%s' "$c" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  case "$c" in
+    1)
+      if _try_install_deps; then
+        echo -e "${GREEN}Dependency siap. Lanjut.${NC}"
+        return 0
+      else
+        echo -e "${RED}Gagal memenuhi dependency otomatis.${NC}"
+        echo "Install manual lalu jalankan ulang:"
+        echo "  - Windows (Git Bash): pastikan Git for Windows terpasang"
+        echo "  - Linux: sudo apt install curl git"
+        echo "  - macOS: brew install curl git"
+        exit 1
+      fi
+      ;;
+    2)
+      echo -e "${YELLOW}Melanjutkan tanpa jaminan dependency...${NC}"
+      return 0
+      ;;
+    *)
+      echo "Keluar."
+      exit 0
+      ;;
+  esac
+}
+
+# Panggil cek dependency (dengan menu jika kurang)
+if ! _report_missing; then
+  show_deps_menu
+elif declare -F sk_ensure_basic >/dev/null 2>&1; then
+  # Masih panggil sk_ensure_basic agar path/winget dll ter-handle
+  sk_ensure_basic curl git || show_deps_menu
+fi
+
+set -e
+
 clear 2>/dev/null || true
 echo -e "${CYAN}"
 echo "╔════════════════════════════════════════════════════╗"
 echo "║          Universal Git Restore Tool                ║"
 echo "║     Restore repo ke commit (snapshot) sebelumnya   ║"
+echo "║     Git Bash / Linux / macOS / Codespaces          ║"
 echo "╚════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
 if [ ! -d ".git" ]; then
   echo -e "${RED}Error: Folder ini bukan repository Git.${NC}"
   echo "Jalankan script ini dari dalam folder repository."
+  echo "Contoh (Git Bash / terminal):"
+  echo "  cd /path/ke/repo"
+  echo "  bash restore.sh"
+  echo "  # atau"
+  echo "  curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh | bash"
   exit 1
 fi
 
@@ -85,12 +205,11 @@ CURRENT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
 CURRENT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null)
 CURRENT_DATE=$(git log -1 --pretty=format:"%ad" --date=short 2>/dev/null)
 
+OWNER="?"
+REPO_NAME="?"
 if [[ "$REPO_URL" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
   OWNER="${BASH_REMATCH[1]}"
   REPO_NAME="${BASH_REMATCH[2]}"
-else
-  OWNER="?"
-  REPO_NAME="?"
 fi
 
 echo -e "${BLUE}Informasi Repository Saat Ini:${NC}"
@@ -142,10 +261,8 @@ echo ""
 TRIES=0
 while true; do
   CHOICE=$(ask "Pilih nomor commit yang ingin dikembalikan: ")
-  # trim spasi + lowercase untuk q
   CHOICE=$(printf '%s' "$CHOICE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  # Keluar: kosong, 0, q, Q, exit, batal
   case "$CHOICE" in
     ""|0|q|Q|exit|EXIT|batal|Batal)
       echo ""
@@ -200,10 +317,23 @@ fi
 echo ""
 echo -e "${CYAN}Melakukan restore...${NC}"
 
-git reset --hard "$SELECTED_HASH"
+if ! git reset --hard "$SELECTED_HASH"; then
+  echo -e "${RED}Gagal git reset --hard. Cek permission / status repo.${NC}"
+  exit 1
+fi
 
 echo -e "${CYAN}Force push ke origin ${CURRENT_BRANCH} ...${NC}"
-git push origin "$CURRENT_BRANCH" --force
+if ! git push origin "$CURRENT_BRANCH" --force; then
+  echo -e "${YELLOW}Force push gagal.${NC}"
+  echo "Kemungkinan:"
+  echo "  - Belum login (Git Bash: git credential / gh auth login)"
+  echo "  - Branch protected di GitHub"
+  echo "  - Tidak ada akses write ke remote"
+  echo ""
+  echo -e "Lokal sudah di-reset ke ${GREEN}$SELECTED_HASH${NC}."
+  echo "Kamu bisa push manual nanti: git push origin $CURRENT_BRANCH --force"
+  exit 1
+fi
 
 echo ""
 echo -e "${GREEN}✓ BERHASIL!${NC}"
@@ -211,3 +341,5 @@ echo "Repo sudah dikembalikan ke commit:"
 echo "  $SELECTED_HASH | $SELECTED_DATE | $SELECTED_MSG"
 echo ""
 echo -e "${YELLOW}Catatan: Jika ini GitHub Pages, tunggu 1–3 menit sampai update.${NC}"
+echo ""
+echo "Script ini bisa dijalankan dari Git Bash (Windows), Linux, macOS, dan Codespaces."
