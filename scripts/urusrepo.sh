@@ -829,20 +829,50 @@ menu_copy_repo_preserve_seo() {
   local src_in dst_in src_owner src_repo dst_owner dst_repo
   read -r -p "Repo SUMBER (owner/repo atau URL): " src_in
   read -r -p "Repo TUJUAN (owner/repo atau URL): " dst_in
+  # buang CR (Windows) + spasi ujung
+  src_in=$(printf '%s' "$src_in" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  dst_in=$(printf '%s' "$dst_in" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [[ -z "$src_in" || -z "$dst_in" ]] && { warn "Sumber & tujuan wajib diisi."; pause; return; }
 
-  # normalisasi owner/repo
-  parse_owner_repo() {
+  # normalisasi owner/repo (aman di Git Bash / MSYS)
+  normalize_owner_repo() {
+    # $1 = input, set variabel global __or_owner __or_repo, return 0/1
     local u="$1"
-    u=$(echo "$u" | sed 's|^https\?://github.com/||; s|\.git$||; s|/$||')
-    if [[ "$u" =~ ^([^/]+)/([^/]+)$ ]]; then
-      printf '%s %s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
-      return 0
+    u=$(printf '%s' "$u" | tr -d '\r')
+    u=$(printf '%s' "$u" | sed -E 's|^https?://github\.com/||; s|\.git$||; s|/*$||')
+    u=$(printf '%s' "$u" | sed 's|^git@github\.com:||')
+    __or_owner=""
+    __or_repo=""
+    if [[ "$u" == */* ]]; then
+      __or_owner="${u%%/*}"
+      __or_repo="${u#*/}"
+      __or_repo="${__or_repo%%/*}"
+    else
+      return 1
     fi
-    return 1
+    # validasi sederhana
+    [[ -n "$__or_owner" && -n "$__or_repo" ]] || return 1
+    [[ "$__or_owner" != *" "* && "$__or_repo" != *" "* ]] || return 1
+    return 0
   }
-  read -r src_owner src_repo < <(parse_owner_repo "$src_in") || { err "Format sumber tidak valid"; pause; return; }
-  read -r dst_owner dst_repo < <(parse_owner_repo "$dst_in") || { err "Format tujuan tidak valid"; pause; return; }
+
+  if ! normalize_owner_repo "$src_in"; then
+    err "Format sumber tidak valid: '$src_in'"
+    echo "  Pakai: owner/repo  atau  https://github.com/owner/repo"
+    pause
+    return
+  fi
+  src_owner="$__or_owner"
+  src_repo="$__or_repo"
+
+  if ! normalize_owner_repo "$dst_in"; then
+    err "Format tujuan tidak valid: '$dst_in'"
+    echo "  Pakai: owner/repo  atau  https://github.com/owner/repo"
+    pause
+    return
+  fi
+  dst_owner="$__or_owner"
+  dst_repo="$__or_repo"
 
   local extra
   read -r -p "Pengecualian tambahan di tujuan (spasi-pisah, opsional): " extra
