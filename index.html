@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Skripkeren — Panduan Script GitHub</title>
-<meta name="description" content="Kumpulan skrip Bash Skripkeren: restore, superx, builder, t-rm, server, NAS, dan lainnya.">
+<meta name="description" content="Kumpulan skrip Bash Skripkeren: restore, superx, builder, urusrepo, t-rm, server, NAS.">
 <meta name="theme-color" content="#2563eb">
 <meta name="author" content="Ted / Silverhawk">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -16,86 +16,244 @@
   <div class="deps-banner-inner">
     <strong>Auto dependency check</strong>
     <p>Script memeriksa curl/git/python/docker/gh di awal dan menawarkan instalasi (winget/apt/brew) bila kurang.</p>
-    <p class="deps-meta">Helper: <code>scripts/sk-deps.sh</code> · semua script ada di folder <code>scripts/</code></p>
+    <p class="deps-meta">Semua file <code>.sh</code> ada di folder <code>scripts/</code> · helper <code>sk-deps.sh</code></p>
   </div>
 </section>
 <div class="container">
 <header>
 <h1>Skripkeren by Ted</h1>
-<p>Semua file .sh terkumpul di <code>scripts/</code> — jalan di Git Bash, Linux, macOS, Codespaces</p>
+<p>Klik nama script untuk membuka panduan + perintah siap salin ke terminal / CMD / console</p>
 </header>
 
 <section>
-<h2>1. Persiapan</h2>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
+<h2>Persiapan</h2>
+<p>Windows: pakai <strong>Git Bash</strong>. macOS/Linux: Terminal. Codespaces: terminal bawaan.</p>
+<pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
 </section>
 
 <section>
-<h2>2. AutoCLI &amp; Repo — t-rm.sh / t-rm7.sh / urusrepo.sh</h2>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh)</pre>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
+<h2>Daftar script (klik untuk expand)</h2>
+
+<details class="script-card">
+  <summary><code>installgitcli.sh</code> — Installer GitHub CLI</summary>
+  <div class="script-body">
+    <p>Install gh di Windows/macOS/Linux.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh -o installgitcli.sh && bash installgitcli.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>t-rm.sh</code> — Silverhawk AutoCLI</summary>
+  <div class="script-body">
+    <p>Login, pilih repo, file manager, Pages, branch.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh -o t-rm.sh && bash t-rm.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>t-rm7.sh</code> — Repo Manager v7</summary>
+  <div class="script-body">
+    <p>Menu berbasis gh CLI (multi-akun, collaborator).</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh -o t-rm7.sh && bash t-rm7.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>t-rmOK.sh</code> — Repo Manager (varian OK)</summary>
+  <div class="script-body">
+    <p>Varian t-rm untuk alur tertentu.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh -o t-rmOK.sh && bash t-rmOK.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>urusrepo.sh</code> — Urus Repo</summary>
+  <div class="script-body">
+    <p>Kosongkan repo, rename massal, sync, upload, salin A→B jaga SEO/CNAME.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh -o urusrepo.sh && bash urusrepo.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>restore.sh</code> — Restore / Rollback commit</summary>
+  <div class="script-body">
+    <p>WAJIB di dalam folder repo Git. Reset ke commit + force push.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh -o restore.sh && bash restore.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>superx.sh</code> — SuperX multi-uninstall</summary>
+  <div class="script-body">
+    <p>List app Windows, pilih nomor/range, uninstall massal.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o superx.sh && bash superx.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>builder.sh</code> — Builder APK/EXE/image</summary>
+  <div class="script-body">
+    <p>Clone repo (boleh orang lain), mirror ke akun Anda, Actions, unduh artifact.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh -o builder.sh && bash builder.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>sk-deps.sh</code> — Helper dependency</summary>
+  <div class="script-body">
+    <p>Dipakai script lain; jarang dijalankan sendiri.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh -o sk-deps.sh && bash sk-deps.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lserver.sh</code> — Home Server Ubuntu</summary>
+  <div class="script-body">
+    <p>Tunnel, PocketBase, firewall, dll. Biasanya butuh sudo.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh -o lserver.sh && bash lserver.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lnas.sh</code> — Home NAS CasaOS</summary>
+  <div class="script-body">
+    <p>Docker + CasaOS + Samba. Biasanya butuh sudo.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh -o lnas.sh && bash lnas.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lnextcloud.sh</code> — Nextcloud</summary>
+  <div class="script-body">
+    <p>Personal cloud. sudo di Ubuntu Server.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh -o lnextcloud.sh && bash lnextcloud.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>limmich.sh</code> — Immich</summary>
+  <div class="script-body">
+    <p>Backup foto (alternatif Google Photos).</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh -o limmich.sh && bash limmich.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>ljellyfin.sh</code> — Jellyfin</summary>
+  <div class="script-body">
+    <p>Media server.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh -o ljellyfin.sh && bash ljellyfin.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lvpn.sh</code> — WireGuard VPN</summary>
+  <div class="script-body">
+    <p>VPN server.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh -o lvpn.sh && bash lvpn.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lnpm.sh</code> — Nginx Proxy Manager</summary>
+  <div class="script-body">
+    <p>Reverse proxy UI.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh -o lnpm.sh && bash lnpm.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lportainer.sh</code> — Portainer</summary>
+  <div class="script-body">
+    <p>Docker GUI.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh -o lportainer.sh && bash lportainer.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lkuma.sh</code> — Uptime Kuma</summary>
+  <div class="script-body">
+    <p>Monitoring uptime.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh -o lkuma.sh && bash lkuma.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>lvault.sh</code> — Vaultwarden</summary>
+  <div class="script-body">
+    <p>Password manager (Bitwarden-compatible).</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh -o lvault.sh && bash lvault.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>wifi-pass.sh</code> — WiFi password (Linux/Termux)</summary>
+  <div class="script-body">
+    <p>Tampilkan password WiFi tersimpan.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh -o wifi-pass.sh && bash wifi-pass.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>install_chrome_bookworm_puppy.sh</code> — Chrome Bookworm/Puppy</summary>
+  <div class="script-body">
+    <p>Install Google Chrome di distro tersebut.</p>
+    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh)</pre>
+    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh -o install_chrome_bookworm_puppy.sh && bash install_chrome_bookworm_puppy.sh</code></p>
+  </div>
+</details>
+<details class="script-card">
+  <summary><code>wifi-pass.ps1</code> — WiFi password (Windows PowerShell)</summary>
+  <div class="script-body">
+    <p>Tampilkan password WiFi di Windows.</p>
+    <pre><button type="button" class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/scripts/wifi-pass.ps1 | iex</pre>
+  </div>
+</details>
 </section>
 
 <section>
-<h2>3. Restore commit — restore.sh</h2>
-<div class="note" style="border-left:4px solid #f5c542;padding-left:12px;">
-<strong>Wajib dijalankan dari dalam folder repo Git</strong> (ada <code>.git</code>).
-Bukan dari Downloads atau folder biasa.
-</div>
-<pre><button class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh | bash</pre>
+<h2>Catatan urusrepo — salin antar repo (jaga SEO)</h2>
+<p>Menu <strong>[7]</strong> di <code>urusrepo.sh</code>: salin semua isi repo sumber ke repo tujuan <strong>tanpa menimpa</strong> file SEO / custom domain di tujuan (<code>CNAME</code>, <code>robots.txt</code>, <code>sitemap*</code>, <code>ads.txt</code>, <code>humans.txt</code>, <code>security.txt</code>, <code>.well-known/</code>).</p>
+<p>Contoh: sumber <code>ayahelang/sditdaarulistiqomah</code> → tujuan <code>ayahelang/darulistiqomah</code>.</p>
+<pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
 </section>
 
 <section>
-<h2>4. SuperX uninstaller — superx.sh</h2>
-<p>List aplikasi Windows + pilih nomor/range, tandai SISTEM, uninstall massal.</p>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)</pre>
-</section>
-
-<section>
-<h2>5. Builder repo → APK / EXE / image — builder.sh</h2>
-<p>Tempel URL GitHub → deteksi bahasa &amp; stack → cek/buat workflow Actions &amp; Dockerfile jika kurang → coba build lokal → tunjukkan path &amp; ukuran artefak / link Actions.</p>
-<pre><button class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh)</pre>
-</section>
-
-<section>
-<h2>6. Server &amp; NAS</h2>
-<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh)</pre>
-<pre><button class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh)</pre>
-</section>
-
-<section>
-<h2>7. Struktur folder</h2>
+<h2>Struktur folder</h2>
 <pre>
 skripkeren/
 ├── index.html
 ├── css/style.css
 ├── js/script.js
-├── scripts/     ← SEMUA .sh dan .ps1
+├── scripts/     ← semua .sh dan .ps1
 └── info/
 </pre>
-<p>URL publik script: <code>https://skripkeren.silverhawk.web.id/scripts/NAMA.sh</code></p>
-<p>Loader sk-deps di setiap script: cek dulu file di folder yang sama, baru unduh dari <code>/scripts/sk-deps.sh</code> — pemindahan ke <code>scripts/</code> tidak memutus eksekusi.</p>
-</section>
-
-<section>
-<h2>8. Daftar scripts/</h2>
-<table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
-<tr><th align="left">File</th><th align="left">Fungsi</th></tr>
-<tr><td>builder.sh</td><td>Deteksi repo, workflow CI, build APK/EXE/image</td></tr>
-<tr><td>restore.sh</td><td>Rollback commit + cek dependency</td></tr>
-<tr><td>superx.sh</td><td>Multi-app uninstall Windows</td></tr>
-<tr><td>sk-deps.sh</td><td>Helper dependency</td></tr>
-<tr><td>t-rm.sh / t-rm7.sh / t-rmOK.sh</td><td>Manajemen repo GitHub</td></tr>
-<tr><td>urusrepo.sh</td><td>Kosongkan / rename / sync repo</td></tr>
-<tr><td>lserver.sh / lnas.sh</td><td>Home server &amp; CasaOS NAS</td></tr>
-<tr><td>lnextcloud / limmich / ljellyfin / lvpn / lnpm / lportainer / lkuma / lvault</td><td>Paket server</td></tr>
-<tr><td>wifi-pass.sh / wifi-pass.ps1</td><td>Password WiFi</td></tr>
-<tr><td>installgitcli.sh / install_chrome_bookworm_puppy.sh</td><td>Installer</td></tr>
-</table>
 </section>
 
 <footer>&copy; 2026 — Skripkeren | ayahelang/skripkeren | skripkeren.silverhawk.web.id</footer>
 </div>
+
 <div id="repoSplash">
   <div class="repo-card">
     <div class="repo-header">

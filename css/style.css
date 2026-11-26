@@ -242,3 +242,42 @@ border-radius:10px;
   border-radius: 6px;
   font-size: .85em;
 }
+
+/* collapsible script cards */
+.script-card{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  margin:10px 0;
+  overflow:hidden;
+}
+.script-card>summary{
+  cursor:pointer;
+  padding:12px 16px;
+  font-weight:600;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  user-select:none;
+}
+.script-card>summary::-webkit-details-marker{display:none}
+.script-card>summary::before{
+  content:"▸";
+  color:var(--accent);
+  display:inline-block;
+  width:1em;
+  transition:transform .15s ease;
+}
+.script-card[open]>summary::before{transform:rotate(90deg)}
+.script-card>summary:hover{background:#f8fafc}
+.script-card .script-body{
+  padding:0 16px 16px 16px;
+  border-top:1px solid #f1f5f9;
+}
+.script-card .hint{
+  font-size:.85rem;
+  color:#6b7280;
+  margin-top:8px;
+}
+.script-card code{font-size:.9em}

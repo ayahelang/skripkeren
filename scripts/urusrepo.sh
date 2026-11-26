@@ -7,7 +7,7 @@
 #  Developed by James What
 # =============================================================================
 # Cara jalankan (universal):
-#   curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh | bash
+#   curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh | bash
 # atau:
 #   bash urusrepo.sh
 # =============================================================================
@@ -809,6 +809,155 @@ menu_upload_keep_remote() {
   pause
 }
 
+
+# ---------- 7) salin isi repo A → repo B (jaga file SEO / custom domain) ----------
+# Contoh: sditdaarulistiqomah → darulistiqomah tanpa overwrite CNAME, robots.txt, sitemap*
+menu_copy_repo_preserve_seo() {
+  header
+  echo -e "${BOLD}[7] Salin isi repo sumber → repo tujuan (jaga SEO / custom domain)${NC}"
+  echo
+  echo "File di repo TUJUAN yang TIDAK akan di-overwrite / dihapus:"
+  echo "  CNAME, robots.txt, sitemap.xml, sitemap*.xml,"
+  echo "  ads.txt, humans.txt, security.txt, .well-known/,"
+  echo "  serta pola SEO lain yang Anda tambahkan."
+  echo
+  echo "Contoh:"
+  echo "  Sumber : ayahelang/sditdaarulistiqomah"
+  echo "  Tujuan : ayahelang/darulistiqomah"
+  echo
+
+  local src_in dst_in src_owner src_repo dst_owner dst_repo
+  read -r -p "Repo SUMBER (owner/repo atau URL): " src_in
+  read -r -p "Repo TUJUAN (owner/repo atau URL): " dst_in
+  [[ -z "$src_in" || -z "$dst_in" ]] && { warn "Sumber & tujuan wajib diisi."; pause; return; }
+
+  # normalisasi owner/repo
+  parse_owner_repo() {
+    local u="$1"
+    u=$(echo "$u" | sed 's|^https\?://github.com/||; s|\.git$||; s|/$||')
+    if [[ "$u" =~ ^([^/]+)/([^/]+)$ ]]; then
+      printf '%s %s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+      return 0
+    fi
+    return 1
+  }
+  read -r src_owner src_repo < <(parse_owner_repo "$src_in") || { err "Format sumber tidak valid"; pause; return; }
+  read -r dst_owner dst_repo < <(parse_owner_repo "$dst_in") || { err "Format tujuan tidak valid"; pause; return; }
+
+  local extra
+  read -r -p "Pengecualian tambahan di tujuan (spasi-pisah, opsional): " extra
+  echo
+  echo "Sumber : ${src_owner}/${src_repo}"
+  echo "Tujuan : ${dst_owner}/${dst_repo}"
+  [[ -n "$extra" ]] && echo "Extra  : $extra"
+  echo
+  confirm "Lanjut salin (working tree lokal + push ke tujuan)?" || { warn "Dibatalkan."; pause; return; }
+
+  command -v git >/dev/null 2>&1 || die "git tidak ditemukan di PATH"
+  local work root src_dir dst_dir
+  root="${TMPDIR:-/tmp}/urusrepo-copy-$$"
+  src_dir="${root}/src"
+  dst_dir="${root}/dst"
+  mkdir -p "$src_dir" "$dst_dir"
+  # shellcheck disable=SC2064
+  trap "rm -rf '$root'" RETURN
+
+  info "Clone sumber (shallow)..."
+  git clone --depth 1 "https://github.com/${src_owner}/${src_repo}.git" "$src_dir" \
+    || die "Gagal clone sumber"
+
+  info "Clone tujuan (shallow)..."
+  # butuh akses write — pakai remote yang sama dengan auth user (gh/credential)
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    gh repo clone "${dst_owner}/${dst_repo}" "$dst_dir" -- --depth 1 \
+      || git clone --depth 1 "https://github.com/${dst_owner}/${dst_repo}.git" "$dst_dir" \
+      || die "Gagal clone tujuan"
+  else
+    git clone --depth 1 "https://github.com/${dst_owner}/${dst_repo}.git" "$dst_dir" \
+      || die "Gagal clone tujuan (login/credential git diperlukan untuk push)"
+  fi
+
+  # daftar protect (basename + path relative patterns)
+  local -a protect=(
+    CNAME robots.txt ads.txt humans.txt security.txt
+    sitemap.xml sitemap.txt
+  )
+  # kumpulkan file SEO yang sudah ada di tujuan untuk di-restore setelah rsync
+  local bak="${root}/seo-bak"
+  mkdir -p "$bak"
+  local f
+  for f in "${protect[@]}"; do
+    if [[ -e "${dst_dir}/${f}" ]]; then
+      mkdir -p "${bak}/$(dirname "$f")"
+      cp -a "${dst_dir}/${f}" "${bak}/${f}"
+      ok "Lindungi: $f"
+    fi
+  done
+  # sitemap* & .well-known
+  if [[ -d "${dst_dir}/.well-known" ]]; then
+    cp -a "${dst_dir}/.well-known" "${bak}/.well-known"
+    ok "Lindungi: .well-known/"
+  fi
+  local s
+  shopt -s nullglob
+  for s in "${dst_dir}"/sitemap*.xml "${dst_dir}"/sitemap*.txt; do
+    [[ -e "$s" ]] || continue
+    local base="${s#${dst_dir}/}"
+    mkdir -p "${bak}/$(dirname "$base")"
+    cp -a "$s" "${bak}/${base}"
+    ok "Lindungi: $base"
+  done
+  for x in $extra; do
+    if [[ -e "${dst_dir}/${x}" ]]; then
+      mkdir -p "${bak}/$(dirname "$x")"
+      cp -a "${dst_dir}/${x}" "${bak}/${x}"
+      ok "Lindungi (extra): $x"
+    fi
+  done
+  shopt -u nullglob
+
+  info "Menyalin isi sumber → tujuan (mengganti konten lain)..."
+  # hapus isi tujuan kecuali .git dan yang dilindungi (akan di-restore)
+  find "$dst_dir" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+
+  # salin semua dari sumber kecuali .git
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --exclude='.git' "${src_dir}/" "${dst_dir}/"
+  else
+    (cd "$src_dir" && tar cf - --exclude='.git' .) | (cd "$dst_dir" && tar xf -)
+  fi
+
+  # restore SEO
+  if [[ -d "$bak" ]]; then
+    info "Mengembalikan file SEO / custom domain tujuan..."
+    (cd "$bak" && tar cf - .) | (cd "$dst_dir" && tar xf -)
+  fi
+
+  info "Commit & push ke tujuan..."
+  (
+    cd "$dst_dir" || exit 1
+    git add -A
+    if git diff --cached --quiet; then
+      ok "Tidak ada perubahan untuk di-commit."
+    else
+      git -c user.email="${GIT_AUTHOR_EMAIL:-urusrepo@skripkeren.local}" \
+          -c user.name="${GIT_AUTHOR_NAME:-urusrepo}" \
+          commit -m "urusrepo: salin dari ${src_owner}/${src_repo} (jaga SEO/CNAME)"
+      # push
+      if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+        git push origin HEAD || die "Push gagal"
+      else
+        git push origin HEAD || die "Push gagal — pastikan credential git/PAT"
+      fi
+      ok "Push ke ${dst_owner}/${dst_repo} berhasil."
+    fi
+  ) || die "Commit/push gagal"
+
+  ok "Selesai. Cek: https://github.com/${dst_owner}/${dst_repo}"
+  pause
+}
+
+
 # ---------- menu utama ----------
 
 # Cek & lengkapi dependency sebelum menu utama
@@ -829,6 +978,7 @@ main_menu() {
     echo "  4) Samakan GitHub ←  lokal    (add + commit + push, TERMASUK hapus)"
     echo "  5) Ganti / pilih repo lagi (wizard login)"
     echo "  6) Upload lokal → GitHub     (tanpa hapus file yang hanya ada di remote)"
+    echo "  7) Salin repo A → repo B     (jaga CNAME/robots/sitemap SEO tujuan)"
     echo "  0) Keluar"
     echo
     read -r -p "Pilih [0-6]: " choice || true
@@ -847,6 +997,7 @@ main_menu() {
         fi
         ;;
       6) menu_upload_keep_remote ;;
+      7) menu_copy_repo_preserve_seo ;;
       0) echo; ok "Selesai. Developed by James What"; exit 0 ;;
       *) warn "Pilihan tidak valid."; sleep 1 ;;
     esac
