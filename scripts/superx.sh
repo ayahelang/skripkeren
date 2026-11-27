@@ -12,12 +12,15 @@
 #    5. Uninstall massal
 #
 #  Cara pakai:
+#    Windows PowerShell (DISARANKAN — tanpa Git Bash/WSL):
+#      irm https://skripkeren.silverhawk.web.id/scripts/superx.ps1 | iex
+#    Windows PowerShell + Git Bash (auto-cari / install Git):
+#      irm https://skripkeren.silverhawk.web.id/scripts/run-sh.ps1 | iex
+#      # atau: powershell -File run-sh.ps1 -ScriptUrl https://skripkeren.silverhawk.web.id/scripts/superx.sh
 #    Git Bash / Linux / macOS / Termux:
 #      bash <(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)
-#    Windows PowerShell (jangan pakai bash <(curl ...) — operator < tidak valid di PS):
-#      curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh
-#    Windows CMD:
-#      curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o %TEMP%\superx.sh && bash %TEMP%\superx.sh
+#    JANGAN di PowerShell: bash <(curl ...)  → error operator <
+#    JANGAN andalkan "bash" di PowerShell jika WSL belum diinstall — itu stub WSL.
 # ==============================================
 
 set +e

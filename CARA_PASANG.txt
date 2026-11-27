@@ -1,13 +1,15 @@
-Skripkeren update — collapse UI + PowerShell + menu nomor
-=========================================================
-1) Extract ke root repo ayahelang/skripkeren
-2) Commit & push
+SuperX Windows — PowerShell native + Git Bash bootstrap
+=======================================================
+Error Anda: bash di PS mengarah ke WSL kosong.
 
-Perubahan:
-- index.html: setiap .sh collapse; perintah Git Bash + PowerShell + CMD
-- css: nama file script kontras (badge hijau)
-- urusrepo: prompt Pilih [0-7] (menu 7 sudah ada)
-- superx: dokumentasi cara jalan di PowerShell
+SEKARANG (tanpa deploy pun, setelah file live):
+  irm https://skripkeren.silverhawk.web.id/scripts/superx.ps1 | iex
 
-PowerShell superx:
-  curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh
+Atau unduh:
+  curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.ps1 -o $env:TEMP\superx.ps1
+  powershell -ExecutionPolicy Bypass -File $env:TEMP\superx.ps1
+
+Bootstrap Git Bash untuk menjalankan .sh lain:
+  irm https://skripkeren.silverhawk.web.id/scripts/run-sh.ps1 | iex
+
+Deploy zip ini ke ayahelang/skripkeren root.

@@ -130,21 +130,24 @@
 </details>
 
 <details class="script-card highlight-card">
-  <summary><span class="script-name">superx.sh</span> <span class="script-title">— Uninstall multi-app (Windows + lintas platform)</span></summary>
+  <summary><span class="script-name">superx.sh / superx.ps1</span> <span class="script-title">— Uninstall multi-app (Windows + lintas platform)</span></summary>
   <div class="script-body">
-    <p>Deteksi OS, list app terinstall, tandai bawaan sistem, pilih nomor/range, uninstall massal. Windows (Git Bash/CMD/PS), macOS, Linux, Termux.</p>
-    <p class="hint warn-hint"><strong>PowerShell tidak mendukung</strong> sintaks <code>bash &lt;(curl …)</code>.
-    Pakai perintah PowerShell / CMD di bawah, atau buka <strong>Git Bash</strong>.</p>
-    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <p>Deteksi OS, list app terinstall, tandai bawaan sistem, pilih nomor/range, uninstall massal.</p>
+    <p class="hint warn-hint"><strong>Penting di Windows PowerShell:</strong> perintah <code>bash</code> sering mengarah ke <em>WSL</em> (bukan Git Bash).
+    Jika muncul “Windows Subsystem for Linux has no installed distributions”, pakai <strong>superx.ps1</strong> (native) di bawah — tidak butuh WSL/Git Bash.</p>
+    <p class="run-label">Windows PowerShell (disarankan, native):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/scripts/superx.ps1 | iex</pre>
+    <p class="run-label">Windows PowerShell — unduh dulu lalu jalankan:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.ps1 -o $env:TEMP\superx.ps1; powershell -ExecutionPolicy Bypass -File $env:TEMP\superx.ps1</pre>
+    <p class="run-label">Windows — jalankan .sh lewat Git Bash (auto-install Git jika belum ada):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/scripts/run-sh.ps1 | iex</pre>
+    <p class="run-label">Git Bash / Linux / macOS / Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)</pre>
-    <p class="run-label">Windows PowerShell:</p>
-    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh</pre>
-    <p class="run-label">Windows CMD:</p>
-    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o %TEMP%\superx.sh && bash %TEMP%\superx.sh</pre>
-    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
-    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh | bash</pre>
+    <p class="run-label">Windows CMD + Git Bash (path penuh):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o %TEMP%\superx.sh &amp;&amp; "C:\Program Files\Git\bin\bash.exe" %TEMP%\superx.sh</pre>
   </div>
 </details>
+
 
 <details class="script-card">
   <summary><span class="script-name">builder.sh</span> <span class="script-title">— Builder utilitas</span></summary>
