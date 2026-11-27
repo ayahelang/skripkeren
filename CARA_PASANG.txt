@@ -1,15 +1,12 @@
-SuperX Windows — PowerShell native + Git Bash bootstrap
-=======================================================
-Error Anda: bash di PS mengarah ke WSL kosong.
+Fix superx.ps1 parse errors (PS 5.1)
+=====================================
+- ASCII only (no unicode checkmarks that broke strings)
+- Safer regex / split for selection
+- UTF-8 BOM for Windows PowerShell
 
-SEKARANG (tanpa deploy pun, setelah file live):
-  irm https://skripkeren.silverhawk.web.id/scripts/superx.ps1 | iex
-
-Atau unduh:
+Setelah deploy:
   curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.ps1 -o $env:TEMP\superx.ps1
   powershell -ExecutionPolicy Bypass -File $env:TEMP\superx.ps1
 
-Bootstrap Git Bash untuk menjalankan .sh lain:
-  irm https://skripkeren.silverhawk.web.id/scripts/run-sh.ps1 | iex
-
-Deploy zip ini ke ayahelang/skripkeren root.
+Atau:
+  irm https://skripkeren.silverhawk.web.id/scripts/superx.ps1 | iex
