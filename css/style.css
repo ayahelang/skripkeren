@@ -281,3 +281,107 @@ border-radius:10px;
   margin-top:8px;
 }
 .script-card code{font-size:.9em}
+
+
+/* Script cards — nama file kontras jelas */
+.script-card {
+  border: 1px solid rgba(11, 110, 79, 0.22);
+  border-radius: 12px;
+  margin: 0.55rem 0;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(8, 76, 55, 0.06);
+}
+.script-card[open] {
+  border-color: rgba(11, 110, 79, 0.45);
+  box-shadow: 0 4px 14px rgba(11, 110, 79, 0.12);
+}
+.script-card summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  color: #0a3d2e;
+  background: linear-gradient(180deg, #f3faf7 0%, #eef7f3 100%);
+  user-select: none;
+}
+.script-card summary::-webkit-details-marker { display: none; }
+.script-card summary::before {
+  content: "▸ ";
+  color: #0B6E4F;
+  font-weight: 800;
+}
+.script-card[open] summary::before { content: "▾ "; }
+.script-name {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  padding: 0.12rem 0.45rem;
+  border-radius: 6px;
+  letter-spacing: 0.01em;
+}
+.script-title {
+  color: #374151;
+  font-weight: 600;
+  margin-left: 0.15rem;
+}
+.script-body {
+  padding: 0.75rem 1rem 1.1rem;
+  border-top: 1px solid rgba(11, 110, 79, 0.12);
+  background: #fafdfb;
+}
+.script-body .run-label {
+  margin: 0.75rem 0 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0B6E4F;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.script-body pre {
+  position: relative;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.75rem 3.2rem 0.75rem 0.85rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.script-body .copy-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: #0B6E4F;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.script-body .copy-btn:hover { background: #065f46; }
+.hint { font-size: 0.88rem; color: #4b5563; }
+.warn-hint {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+}
+.highlight-card summary {
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+}
+.note-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin: 1.25rem 0;
+}
+.note-box h2 { margin-top: 0; color: #0B6E4F; font-size: 1.1rem; }

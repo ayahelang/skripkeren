@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Skripkeren — Panduan Script GitHub</title>
-<meta name="description" content="Kumpulan skrip Bash Skripkeren: restore, superx, builder, urusrepo, t-rm, server, NAS.">
-<meta name="theme-color" content="#2563eb">
+<meta name="description" content="Kumpulan skrip Bash Skripkeren: restore, superx, builder, urusrepo, t-rm, server, NAS. Klik untuk expand perintah Git Bash / PowerShell / CMD.">
+<meta name="theme-color" content="#0B6E4F">
 <meta name="author" content="Ted / Silverhawk">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://silverhawk.web.id/lock/lock.css">
@@ -16,263 +16,377 @@
   <div class="deps-banner-inner">
     <strong>Auto dependency check</strong>
     <p>Script memeriksa curl/git/python/docker/gh di awal dan menawarkan instalasi (winget/apt/brew) bila kurang.</p>
-    <p class="deps-meta">Semua file <code>.sh</code> ada di folder <code>scripts/</code> · helper <code>sk-deps.sh</code></p>
+    <p class="deps-meta">Semua file <code>.sh</code> di folder <code>scripts/</code> · helper <code>sk-deps.sh</code></p>
   </div>
 </section>
 <div class="container">
 <header>
 <h1>Skripkeren by Ted</h1>
-<p>Klik nama script untuk membuka panduan + perintah siap salin ke terminal / CMD / console</p>
+<p>Klik <strong>nama script</strong> untuk membuka panduan + perintah siap salin ke terminal, CMD, atau PowerShell. Default tertutup (collapsed).</p>
 </header>
 
-<section>
-<h2>Persiapan</h2>
-<p>Windows: pakai <strong>Git Bash</strong>. macOS/Linux: Terminal. Codespaces: terminal bawaan.</p>
+<section class="note-box">
+<h2>Persiapan & platform</h2>
+<ul>
+  <li><strong>Windows:</strong> paling lancar pakai <em>Git Bash</em>. PowerShell/CMD didukung lewat perintah unduh-lalu-jalankan (tanpa <code>&lt;(…)</code>).</li>
+  <li><strong>macOS / Linux:</strong> Terminal bawaan.</li>
+  <li><strong>Android:</strong> Termux.</li>
+  <li><strong>iPhone:</strong> app terminal SSH ke server/Linux (script tidak jalan native di iOS).</li>
+</ul>
+<p>Install GitHub CLI (opsional):</p>
 <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
 </section>
 
 <section>
 <h2>Daftar script (klik untuk expand)</h2>
-
 <details class="script-card">
-  <summary><code>installgitcli.sh</code> — Installer GitHub CLI</summary>
+  <summary><span class="script-name">installgitcli.sh</span> <span class="script-title">— Installer GitHub CLI</span></summary>
   <div class="script-body">
     <p>Install gh di Windows/macOS/Linux.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh -o installgitcli.sh && bash installgitcli.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh -o $env:TEMP\installgitcli.sh; bash $env:TEMP\installgitcli.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh -o %TEMP%\installgitcli.sh && bash %TEMP%\installgitcli.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/installgitcli.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>t-rm.sh</code> — Silverhawk AutoCLI</summary>
+  <summary><span class="script-name">t-rm.sh</span> <span class="script-title">— Silverhawk AutoCLI</span></summary>
   <div class="script-body">
     <p>Login, pilih repo, file manager, Pages, branch.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh -o t-rm.sh && bash t-rm.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh -o $env:TEMP\t-rm.sh; bash $env:TEMP\t-rm.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh -o %TEMP%\t-rm.sh && bash %TEMP%\t-rm.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>t-rm7.sh</code> — Repo Manager v7</summary>
+  <summary><span class="script-name">t-rm7.sh</span> <span class="script-title">— Repo Manager v7 (gh CLI)</span></summary>
   <div class="script-body">
-    <p>Menu berbasis gh CLI (multi-akun, collaborator).</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Menu berbasis GitHub CLI.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh -o t-rm7.sh && bash t-rm7.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh -o $env:TEMP\t-rm7.sh; bash $env:TEMP\t-rm7.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh -o %TEMP%\t-rm7.sh && bash %TEMP%\t-rm7.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rm7.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>t-rmOK.sh</code> — Repo Manager (varian OK)</summary>
+  <summary><span class="script-name">t-rmOK.sh</span> <span class="script-title">— Repo Manager (varian OK)</span></summary>
   <div class="script-body">
-    <p>Varian t-rm untuk alur tertentu.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Varian stabil manajemen repo.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh -o t-rmOK.sh && bash t-rmOK.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh -o $env:TEMP\t-rmOK.sh; bash $env:TEMP\t-rmOK.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh -o %TEMP%\t-rmOK.sh && bash %TEMP%\t-rmOK.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/t-rmOK.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>urusrepo.sh</code> — Urus Repo</summary>
+  <summary><span class="script-name">restore.sh</span> <span class="script-title">— Rollback commit</span></summary>
   <div class="script-body">
-    <p>Kosongkan repo, rename massal, sync, upload, salin A→B jaga SEO/CNAME.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh -o urusrepo.sh && bash urusrepo.sh</code></p>
-  </div>
-</details>
-<details class="script-card">
-  <summary><code>restore.sh</code> — Restore / Rollback commit</summary>
-  <div class="script-body">
-    <p>WAJIB di dalam folder repo Git. Reset ke commit + force push.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Kembalikan repo ke snapshot commit sebelumnya.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh -o restore.sh && bash restore.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh -o $env:TEMP\restore.sh; bash $env:TEMP\restore.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh -o %TEMP%\restore.sh && bash %TEMP%\restore.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/restore.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>superx.sh</code> — SuperX multi-uninstall</summary>
+  <summary><span class="script-name">urusrepo.sh</span> <span class="script-title">— Urus repo (rename, sync, upload, salin SEO)</span></summary>
   <div class="script-body">
-    <p>List app Windows, pilih nomor/range, uninstall massal.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Kosongkan, rename massal, sync, upload tanpa hapus remote, salin repo jaga SEO. Auto-deps python/git.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh -o $env:TEMP\urusrepo.sh; bash $env:TEMP\urusrepo.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh -o %TEMP%\urusrepo.sh && bash %TEMP%\urusrepo.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh | bash</pre>
+  </div>
+</details>
+
+<details class="script-card highlight-card">
+  <summary><span class="script-name">superx.sh</span> <span class="script-title">— Uninstall multi-app (Windows + lintas platform)</span></summary>
+  <div class="script-body">
+    <p>Deteksi OS, list app terinstall, tandai bawaan sistem, pilih nomor/range, uninstall massal. Windows (Git Bash/CMD/PS), macOS, Linux, Termux.</p>
+    <p class="hint warn-hint"><strong>PowerShell tidak mendukung</strong> sintaks <code>bash &lt;(curl …)</code>.
+    Pakai perintah PowerShell / CMD di bawah, atau buka <strong>Git Bash</strong>.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o superx.sh && bash superx.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o %TEMP%\superx.sh && bash %TEMP%\superx.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>builder.sh</code> — Builder APK/EXE/image</summary>
+  <summary><span class="script-name">builder.sh</span> <span class="script-title">— Builder utilitas</span></summary>
   <div class="script-body">
-    <p>Clone repo (boleh orang lain), mirror ke akun Anda, Actions, unduh artifact.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Utilitas build/helper Skripkeren.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh -o builder.sh && bash builder.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh -o $env:TEMP\builder.sh; bash $env:TEMP\builder.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh -o %TEMP%\builder.sh && bash %TEMP%\builder.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/builder.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>sk-deps.sh</code> — Helper dependency</summary>
+  <summary><span class="script-name">sk-deps.sh</span> <span class="script-title">— Helper dependency bersama</span></summary>
   <div class="script-body">
     <p>Dipakai script lain; jarang dijalankan sendiri.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh -o sk-deps.sh && bash sk-deps.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh -o $env:TEMP\sk-deps.sh; bash $env:TEMP\sk-deps.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh -o %TEMP%\sk-deps.sh && bash %TEMP%\sk-deps.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/sk-deps.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lserver.sh</code> — Home Server Ubuntu</summary>
+  <summary><span class="script-name">lserver.sh</span> <span class="script-title">— Home Server Ubuntu</span></summary>
   <div class="script-body">
-    <p>Tunnel, PocketBase, firewall, dll. Biasanya butuh sudo.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh -o lserver.sh && bash lserver.sh</code></p>
+    <p>Cloudflare Tunnel + PocketBase + firewall. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh -o $env:TEMP\lserver.sh; bash $env:TEMP\lserver.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh -o %TEMP%\lserver.sh && bash %TEMP%\lserver.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lserver.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lnas.sh</code> — Home NAS CasaOS</summary>
+  <summary><span class="script-name">lnas.sh</span> <span class="script-title">— Home NAS (CasaOS)</span></summary>
   <div class="script-body">
-    <p>Docker + CasaOS + Samba. Biasanya butuh sudo.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh -o lnas.sh && bash lnas.sh</code></p>
+    <p>Docker + CasaOS + Samba + Tunnel. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh -o $env:TEMP\lnas.sh; bash $env:TEMP\lnas.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh -o %TEMP%\lnas.sh && bash %TEMP%\lnas.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnas.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lnextcloud.sh</code> — Nextcloud</summary>
+  <summary><span class="script-name">lnextcloud.sh</span> <span class="script-title">— Nextcloud</span></summary>
   <div class="script-body">
-    <p>Personal cloud. sudo di Ubuntu Server.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh -o lnextcloud.sh && bash lnextcloud.sh</code></p>
+    <p>Personal cloud / file sync. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh -o $env:TEMP\lnextcloud.sh; bash $env:TEMP\lnextcloud.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh -o %TEMP%\lnextcloud.sh && bash %TEMP%\lnextcloud.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnextcloud.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>limmich.sh</code> — Immich</summary>
+  <summary><span class="script-name">limmich.sh</span> <span class="script-title">— Immich</span></summary>
   <div class="script-body">
-    <p>Backup foto (alternatif Google Photos).</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh -o limmich.sh && bash limmich.sh</code></p>
+    <p>Backup foto (alternatif Google Photos). (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh -o $env:TEMP\limmich.sh; bash $env:TEMP\limmich.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh -o %TEMP%\limmich.sh && bash %TEMP%\limmich.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/limmich.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>ljellyfin.sh</code> — Jellyfin</summary>
+  <summary><span class="script-name">ljellyfin.sh</span> <span class="script-title">— Jellyfin</span></summary>
   <div class="script-body">
-    <p>Media server.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh -o ljellyfin.sh && bash ljellyfin.sh</code></p>
+    <p>Media server. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh -o $env:TEMP\ljellyfin.sh; bash $env:TEMP\ljellyfin.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh -o %TEMP%\ljellyfin.sh && bash %TEMP%\ljellyfin.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/ljellyfin.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lvpn.sh</code> — WireGuard VPN</summary>
+  <summary><span class="script-name">lvpn.sh</span> <span class="script-title">— WireGuard VPN</span></summary>
   <div class="script-body">
-    <p>VPN server.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh -o lvpn.sh && bash lvpn.sh</code></p>
+    <p>VPN WireGuard. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh -o $env:TEMP\lvpn.sh; bash $env:TEMP\lvpn.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh -o %TEMP%\lvpn.sh && bash %TEMP%\lvpn.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvpn.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lnpm.sh</code> — Nginx Proxy Manager</summary>
+  <summary><span class="script-name">lnpm.sh</span> <span class="script-title">— Nginx Proxy Manager</span></summary>
   <div class="script-body">
-    <p>Reverse proxy UI.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh -o lnpm.sh && bash lnpm.sh</code></p>
+    <p>Reverse proxy + SSL. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh -o $env:TEMP\lnpm.sh; bash $env:TEMP\lnpm.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh -o %TEMP%\lnpm.sh && bash %TEMP%\lnpm.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lnpm.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lportainer.sh</code> — Portainer</summary>
+  <summary><span class="script-name">lportainer.sh</span> <span class="script-title">— Portainer</span></summary>
   <div class="script-body">
-    <p>Docker GUI.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh -o lportainer.sh && bash lportainer.sh</code></p>
+    <p>GUI Docker. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh -o $env:TEMP\lportainer.sh; bash $env:TEMP\lportainer.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh -o %TEMP%\lportainer.sh && bash %TEMP%\lportainer.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lportainer.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lkuma.sh</code> — Uptime Kuma</summary>
+  <summary><span class="script-name">lkuma.sh</span> <span class="script-title">— Uptime Kuma</span></summary>
   <div class="script-body">
-    <p>Monitoring uptime.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh -o lkuma.sh && bash lkuma.sh</code></p>
+    <p>Monitoring uptime. (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh -o $env:TEMP\lkuma.sh; bash $env:TEMP\lkuma.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh -o %TEMP%\lkuma.sh && bash %TEMP%\lkuma.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lkuma.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>lvault.sh</code> — Vaultwarden</summary>
+  <summary><span class="script-name">lvault.sh</span> <span class="script-title">— Vaultwarden</span></summary>
   <div class="script-body">
-    <p>Password manager (Bitwarden-compatible).</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
-    <pre><button type="button" class="copy-btn">Copy</button>sudo bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh -o lvault.sh && bash lvault.sh</code></p>
+    <p>Password manager (Bitwarden-compatible). (sudo/Linux)</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh)</pre>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh -o $env:TEMP\lvault.sh; bash $env:TEMP\lvault.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh -o %TEMP%\lvault.sh && bash %TEMP%\lvault.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/lvault.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>wifi-pass.sh</code> — WiFi password (Linux/Termux)</summary>
+  <summary><span class="script-name">wifi-pass.sh</span> <span class="script-title">— WiFi password (Linux/Termux)</span></summary>
   <div class="script-body">
     <p>Tampilkan password WiFi tersimpan.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh -o wifi-pass.sh && bash wifi-pass.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh -o $env:TEMP\wifi-pass.sh; bash $env:TEMP\wifi-pass.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh -o %TEMP%\wifi-pass.sh && bash %TEMP%\wifi-pass.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/wifi-pass.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>install_chrome_bookworm_puppy.sh</code> — Chrome Bookworm/Puppy</summary>
+  <summary><span class="script-name">install_chrome_bookworm_puppy.sh</span> <span class="script-title">— Chrome Bookworm/Puppy</span></summary>
   <div class="script-body">
-    <p>Install Google Chrome di distro tersebut.</p>
-    <p><strong>Jalankan (Git Bash / Linux / macOS / terminal):</strong></p>
+    <p>Installer Chrome untuk Debian/Puppy.</p>
+    <p class="run-label">Git Bash / Linux / macOS / Android Termux:</p>
     <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh)</pre>
-    <p class="hint">Atau unduh dulu: <code>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh -o install_chrome_bookworm_puppy.sh && bash install_chrome_bookworm_puppy.sh</code></p>
+    <p class="run-label">Windows PowerShell:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh -o $env:TEMP\install_chrome_bookworm_puppy.sh; bash $env:TEMP\install_chrome_bookworm_puppy.sh</pre>
+    <p class="run-label">Windows CMD:</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh -o %TEMP%\install_chrome_bookworm_puppy.sh && bash %TEMP%\install_chrome_bookworm_puppy.sh</pre>
+    <p class="run-label">Alternatif (pipe, Git Bash/Linux):</p>
+    <pre><button type="button" class="copy-btn">Copy</button>curl -fsSL https://skripkeren.silverhawk.web.id/scripts/install_chrome_bookworm_puppy.sh | bash</pre>
   </div>
 </details>
+
 <details class="script-card">
-  <summary><code>wifi-pass.ps1</code> — WiFi password (Windows PowerShell)</summary>
+  <summary><span class="script-name">wifi-pass.ps1</span> <span class="script-title">— WiFi password (Windows PowerShell native)</span></summary>
   <div class="script-body">
-    <p>Tampilkan password WiFi di Windows.</p>
+    <p>Script PowerShell asli (bukan bash).</p>
+    <p class="run-label">PowerShell:</p>
     <pre><button type="button" class="copy-btn">Copy</button>irm https://skripkeren.silverhawk.web.id/scripts/wifi-pass.ps1 | iex</pre>
   </div>
 </details>
+
 </section>
 
-<section>
-<h2>Catatan urusrepo — salin antar repo (jaga SEO)</h2>
-<p>Menu <strong>[7]</strong> di <code>urusrepo.sh</code>: salin semua isi repo sumber ke repo tujuan <strong>tanpa menimpa</strong> file SEO / custom domain di tujuan (<code>CNAME</code>, <code>robots.txt</code>, <code>sitemap*</code>, <code>ads.txt</code>, <code>humans.txt</code>, <code>security.txt</code>, <code>.well-known/</code>).</p>
-<p>Contoh: sumber <code>ayahelang/sditdaarulistiqomah</code> → tujuan <code>ayahelang/darulistiqomah</code>.</p>
+<section class="note-box">
+<h2>Catatan urusrepo — menu bernomor</h2>
+<ol>
+  <li>Kosongkan isi repo (kecuali CNAME, *.sh, + exclude)</li>
+  <li>Rename massal file di folder</li>
+  <li>Samakan lokal ← GitHub (fetch + reset hard)</li>
+  <li>Samakan GitHub ← lokal (termasuk hapus di remote)</li>
+  <li>Ganti / pilih repo lagi</li>
+  <li>Upload lokal → GitHub (tanpa hapus file yang hanya ada di remote)</li>
+  <li>Salin repo A → repo B (jaga CNAME/robots/sitemap SEO tujuan)</li>
+  <li value="0">0) Keluar</li>
+</ol>
 <pre><button type="button" class="copy-btn">Copy</button>bash &lt;(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh)</pre>
+<p class="hint">PowerShell: <code>curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/urusrepo.sh -o $env:TEMP\urusrepo.sh; bash $env:TEMP\urusrepo.sh</code></p>
 </section>
 
-<section>
-<h2>Struktur folder</h2>
-<pre>
-skripkeren/
-├── index.html
-├── css/style.css
-├── js/script.js
-├── scripts/     ← semua .sh dan .ps1
-└── info/
-</pre>
-</section>
-
-<footer>&copy; 2026 — Skripkeren | ayahelang/skripkeren | skripkeren.silverhawk.web.id</footer>
-</div>
-
-<div id="repoSplash">
-  <div class="repo-card">
-    <div class="repo-header">
-      <h2>GitHub Repo → GitHub Pages</h2>
-      <button id="btnCloseSplash" class="closeSplash" title="Tutup">&times;</button>
-    </div>
-    <p>Tempel alamat repository GitHub, lalu klik <b>Convert</b>.</p>
-    <input id="repoInput" class="repo-input" type="url" placeholder="https://github.com/username/repository">
-    <div class="repo-actions">
-      <button id="btnConvert">Convert</button>
-      <button id="btnCopyResult">Copy</button>
-      <button id="btnOpenResult">Open</button>
-    </div>
-    <div id="repoStatus" class="repo-status"></div>
-    <div id="repoResult"></div>
-    <a id="repoLink" href="#" target="_blank" rel="noopener"><img id="repoThumb" src="" alt=""></a>
-  </div>
+<footer>
+  <p>Skripkeren · Silverhawk Network · <a href="https://github.com/ayahelang/skripkeren">GitHub</a></p>
+</footer>
 </div>
 <script src="js/script.js"></script>
-<script src="https://silverhawk.web.id/lock/lock.js"></script>
 </body>
 </html>

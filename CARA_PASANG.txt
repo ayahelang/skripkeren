@@ -1,12 +1,13 @@
-Skripkeren auto-deps v5
-=======================
-Baru:
-- sk-deps.sh — helper bersama (python/git/curl/gh/docker + auto-install)
-- Semua script .sh utama me-load sk-deps dan sk_ensure_basic di awal
-- index.html / style.css / script.js: banner "Auto dependency check"
+Skripkeren update — collapse UI + PowerShell + menu nomor
+=========================================================
+1) Extract ke root repo ayahelang/skripkeren
+2) Commit & push
 
-Deploy seluruh file di zip ke root repo ayahelang/skripkeren (GitHub Pages).
+Perubahan:
+- index.html: setiap .sh collapse; perintah Git Bash + PowerShell + CMD
+- css: nama file script kontras (badge hijau)
+- urusrepo: prompt Pilih [0-7] (menu 7 sudah ada)
+- superx: dokumentasi cara jalan di PowerShell
 
-Uji:
-  bash <(curl -fsSL https://skripkeren.silverhawk.web.id/urusrepo.sh)
-  bash <(curl -fsSL https://skripkeren.silverhawk.web.id/restore.sh)
+PowerShell superx:
+  curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh

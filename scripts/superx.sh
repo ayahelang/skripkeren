@@ -12,8 +12,12 @@
 #    5. Uninstall massal
 #
 #  Cara pakai:
-#    bash superx.sh
-#    curl -fsSL https://skripkeren.silverhawk.web.id/superx.sh | bash
+#    Git Bash / Linux / macOS / Termux:
+#      bash <(curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh)
+#    Windows PowerShell (jangan pakai bash <(curl ...) — operator < tidak valid di PS):
+#      curl.exe -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o $env:TEMP\superx.sh; bash $env:TEMP\superx.sh
+#    Windows CMD:
+#      curl -fsSL https://skripkeren.silverhawk.web.id/scripts/superx.sh -o %TEMP%\superx.sh && bash %TEMP%\superx.sh
 # ==============================================
 
 set +e

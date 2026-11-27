@@ -1001,7 +1001,7 @@ fi
 main_menu() {
   while true; do
     header
-    echo -e "${BOLD}Menu:${NC}"
+    echo -e "${BOLD}Menu urusrepo:${NC}"
     echo "  1) Kosongkan isi repo (kecuali CNAME, *.sh, + exclude opsional)"
     echo "  2) Rename massal file di folder (aturan web-safe + nomor)"
     echo "  3) Samakan lokal  ←  GitHub   (fetch + reset hard)"
@@ -1011,7 +1011,7 @@ main_menu() {
     echo "  7) Salin repo A → repo B     (jaga CNAME/robots/sitemap SEO tujuan)"
     echo "  0) Keluar"
     echo
-    read -r -p "Pilih [0-6]: " choice || true
+    read -r -p "Pilih [0-7]: " choice || true
     case "${choice}" in
       1) menu_empty_repo ;;
       2) menu_rename_folder ;;
